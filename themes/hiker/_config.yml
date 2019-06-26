@@ -97,10 +97,16 @@ search:
 gentie_productKey: #your-gentie-product-key
 duoshuo_shortname: 
 disqus_shortname: 
-livere_shortname: MTAyMC8yOTQ4MS82MDQ5
+livere_shortname: 
 uyan_uid: 
 wumii: 
-
+gitalk:
+  enable: true #用来做启用判断可以不用
+  owner: kangzhanlei
+  repo: kangzhanlei.github.io
+  admin: kangzhanlei
+  clientID: cd042d5069b1dd0833b9
+  clientSecret: d6c4d43abaeafa7a6097742cf0c98e78ee959157
 
 # Code Highlight theme
 # Available value:
