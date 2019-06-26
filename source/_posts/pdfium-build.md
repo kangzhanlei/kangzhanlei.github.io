@@ -1,10 +1,12 @@
 ---
 title: "win10编译pdfium"
 author: "kzl"
-tags: ["pdfium"]
+tags: 
+	- pdfium
+categories:
+	- 工具
 date: 2019-04-24T13:35:02+08:00
-layout: "kzl"
-typora-root-url: G:/kzltime/static
+layout: "post"
 ---
 
 在win10+vs2019下编译pdfium动态库。
