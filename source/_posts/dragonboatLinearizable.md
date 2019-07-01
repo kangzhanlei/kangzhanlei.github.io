@@ -1,5 +1,5 @@
 ---
-title: dragonboat实现线性一致性协议-学习笔记
+title: dragonboat学习笔记-实现线性一致性
 date: 2019-07-01 09:29:19
 tags:
 	- raft
