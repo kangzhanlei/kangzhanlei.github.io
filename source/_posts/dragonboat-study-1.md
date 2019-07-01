@@ -11,7 +11,7 @@ categories:
 
 [TOC]
 
-# **当前处理draft状态**
+# **当前处于draft状态**
 
 # 整体结构
 
@@ -290,13 +290,16 @@ func (n *node) handleEvents() bool {
 func (n *node) getUpdate() (pb.Update, bool) {
   //判断当前状态机中是否有任务要执行
 	moreEntriesToApply := n.canHaveMoreEntriesToApply()
-  //1. 获取当前raft的状态和记录的上一个状态是不是一致(term,vote,commit)，不一致TODO 
+  //1. 获取当前raft的状态和记录的上一个状态是不是一致(term,vote,commit)，不一致说明有执行了新的apply，
+  //   需要更新给其他节点 
   //2. 快照 TODO
   //3. 判断当前node的msgs是否大于0，这个msgs表示待向外发送的pb消息，这是一个队列
   //4. 判断当前在内存中是否缓存了Entry，有的话也需要处理
   //5. 判断当前是否有readyToRead的消息，如果有，也需要处理，这个主要是ReadIndex协议有结果了，加到队列中来的。
 	if n.p.HasUpdate(moreEntriesToApply) ||
+		//在上次执行完变更之后，状态机又有了新的变化，这些是要同步给别人的。
 		n.confirmedIndex != n.smAppliedIndex {
+    //这基本不会发生吧。判断这个干啥
 		if n.smAppliedIndex < n.confirmedIndex {
 			plog.Panicf("last applied value moving backwards, %d, now %d",
 				n.confirmedIndex, n.smAppliedIndex)
@@ -306,7 +309,8 @@ func (n *node) getUpdate() (pb.Update, bool) {
 		for idx := range ud.Messages {
 			ud.Messages[idx].ClusterId = n.clusterID
 		}
-    //节点确认的消息，修改为已经applyIndex，等待下次比对。
+    //把confirmedIndex修改为applyIndex，记录下来：我上次给别人发送的update是从这里开始的
+    //下次一比对就知道有没有更新了
 		n.confirmedIndex = n.smAppliedIndex
 		return ud, true
 	}
@@ -316,7 +320,7 @@ func (n *node) getUpdate() (pb.Update, bool) {
 
 
 
-## sendReplicateMessages &&SaveRaftState
+## SendReplicateMessages &&SaveRaftState
 
 得到变更的消息之后，可以先不必落盘，而是先并行的发送给其他节点，这样可以做到网络和磁盘同时进行。为什么不落地直接发送是安全的？因为最终也是要判断是否大多数节点收到了这个消息，如果收到了，即使主节点挂了，依然可以通过选取新主来得到这个commited的数据的。
 
@@ -343,7 +347,7 @@ func (n *node) runSyncTask() (bool, error) {
 			return false, nil
 		}
 	}
-  //快照的后续梳理
+  //快照的部分，后续梳理
 	syncedIndex := n.sm.GetSyncedIndex()
 	if err := n.shrinkSnapshots(syncedIndex); err != nil {
 		return false, err
