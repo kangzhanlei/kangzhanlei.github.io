@@ -81,3 +81,5 @@ deploy:
   type: git
   repository:  git@github.com:kangzhanlei/kangzhanlei.github.io.git
   branch: master
+sitemap:
+  path: sitemap.xml
