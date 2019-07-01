@@ -4,9 +4,9 @@ date: 2019-07-01 09:29:19
 tags:
 	- raft
 	- dragonboat
+	- 源码分析
 categories:
 	- 一致性协议
-	- 源码分析
 typora-root-url: ../_posts
 ---
 
