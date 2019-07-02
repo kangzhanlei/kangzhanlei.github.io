@@ -5,13 +5,10 @@ tags:
 	- raft
 	- dragonboat
 	- 源码分析
+keywords: dragonboat,一致性协议,raft,源码分析
 categories:
 	- 一致性协议
 ---
-
-[TOC]
-
-# **当前处于draft状态**
 
 # 整体结构
 
@@ -247,6 +244,7 @@ func (n *node) handleEvents() bool {
   //5. 如果上面的ReadReqCount>0，表示有ReadIndex请求，这里构造一个pb消息，直接让raft根据消息类型ReadIndex执行
   //6. 如果是LocalTick消息，表示逻辑时钟。对pendingSnapshot,PendingProposals,
   //   PendingReadIndexes,PendingConfigChange都进行tick自增，表示时钟流逝了。
+  //   因为时钟滴滴答答的向前走，raft也会进行tick处理，让当前的状态机执行LocalTck事件。状态机会根据当前所在的节点是否是leader，来决定leaderTick还是nonLeaderTick，nonLeadertick会判断当前的时间是否超过了election的时候，然后就会发起election消息，竞选leader
 	if n.handleReceivedMessages() {
 		hasEvent = true
 	}
@@ -318,7 +316,18 @@ func (n *node) getUpdate() (pb.Update, bool) {
 }
 ```
 
+`Update`是一个需要变更的集合信息。包含的主要内容有：
 
+* clusterID , NodeID
+* State ，当前raft节点的状态，他必须在发送给其他节点之前被持久化下来。
+* EntriesToSave， 准备写到logdb里的日志条目们
+* CommitedEntries, 已经commited的日志，还没有被状态机应用
+* MoreCommitedEntries, 表示这是否还有更多的committed entries准备被apply
+* snapshot，快照被apply
+* ReadyToRead，表示一个准备被本地读取的一个ReadIndex的请求结果信息
+* Message ，向其他节点发送的消息的数组
+* LastApplied，表示被状态机执行的最后一个index
+* UpdateCommit 描述如何commit这个update，从而推进raft的状态变更
 
 ## SendReplicateMessages &&SaveRaftState
 
@@ -360,5 +369,190 @@ func (n *node) runSyncTask() (bool, error) {
 
 ##  状态机执行
 
+跟上面的`nodeWorkerMain`一样，`taskWorkerMain` 也是定时或者消息机制通知后，开始执行`execSMs`方法，具体代码如下：
 
+```go
+func (s *execEngine) execSMs(workerID uint64,
+	idmap map[uint64]struct{},
+	nodes map[uint64]*node, batch []rsm.Task, entries []sm.Entry) {
+	if len(idmap) == 0 {
+		for k := range nodes {
+			idmap[k] = struct{}{}
+		}
+	}
+	var p *profiler
+	if workerCount == taskWorkerCount {
+		p = s.profilers[workerID-1]
+		p.newCommitIteration()
+		p.exec.start()
+	}
+  //idmap中存的都是节点的cluster，表示哪个节点有事件了
+	for clusterID := range idmap {
+		node, ok := nodes[clusterID]
+		if !ok || node.stopped() {
+			continue
+		}
+    //处理快照状态，先不关注
+		if node.processSnapshotStatusTransition() {
+			continue
+		}
+    //让node去执行任务，传入的是一个batch，表示积攒的Task，entries表示本次所有的请求条目
+		task, err := node.handleTask(batch, entries)
+		if err != nil {
+			panic(err)
+		}
+		if task.IsSnapshotTask() {
+			node.handleSnapshotTask(task)
+		}
+	}
+	if p != nil {
+		p.exec.end()
+	}
+}
+```
+
+继续来看`node.handleTask`的实现, 直接交由状态执行`Handle`方法: 
+
+```go
+func (s *StateMachine) Handle(batch []Task, apply []sm.Entry) (Task, error) {
+	batch = batch[:0]
+	apply = apply[:0]
+	processed := false
+	defer func() {
+		// give the node worker a chance to run when
+		//  - batched applied value has been updated
+		//  - taskC has been poped
+		if processed {
+			s.node.NodeReady()
+		}
+	}()
+  //获取任务
+	rec, ok := s.taskQ.Get()
+	if ok {
+		processed = true
+    //是快照任务的话，返回，外面有对快照处理的方法
+		if rec.IsSnapshotTask() {
+			return rec, nil
+		}
+    //如果不是同步任务，就积攒到一个batch中，等待执行
+		if !rec.isSyncTask() {
+			batch = append(batch, rec)
+		} else {
+      //如果是同步任务，则落盘保存
+			if err := s.sync(); err != nil {
+				return Task{}, err
+			}
+		}
+		done := false
+		for !done {
+			rec, ok := s.taskQ.Get()
+			if ok {
+				if rec.IsSnapshotTask() {
+					if err := s.handle(batch, apply); err != nil {
+						return Task{}, err
+					}
+					return rec, nil
+				}
+				if !rec.isSyncTask() {
+					batch = append(batch, rec)
+				} else {
+					if err := s.sync(); err != nil {
+						return Task{}, err
+					}
+				}
+			} else {
+				done = true
+			}
+		}
+	}
+  //在这里handle
+	return Task{}, s.handle(batch, apply)
+}
+```
+
+
+
+继续看状态机的handle方法
+
+```go
+
+func (s *StateMachine) handle(batch []Task, toApply []sm.Entry) error {
+	batchSupport := batchedEntryApply && s.ConcurrentSnapshot()
+	for b := range batch {
+		if batch[b].IsSnapshotTask() || batch[b].isSyncTask() {
+			plog.Panicf("%s trying to handle a snapshot/sync request", s.id())
+		}
+		input := batch[b].Entries
+		allUpdate, allNoOP := getEntryTypes(input)
+		if batchSupport && allUpdate && allNoOP {
+      //判断这个entry是不是configChange，sessionManager，newSessionRequest，EndOfSessionRequest
+			if err := s.handleBatch(input, toApply); err != nil {
+				return err
+			}
+		} else {
+			for i := range input {
+				last := b == len(batch)-1 && i == len(input)-1
+        //处理entry
+				if err := s.handleEntry(input[i], last); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+```
+
+```go
+func (s *StateMachine) handleEntry(ent pb.Entry, last bool) error {
+	// ConfChnage also go through the SM so the index value is updated
+	if ent.IsConfigChange() {
+		accepted := s.handleConfigChange(ent)
+		s.node.ConfigChangeProcessed(ent.Key, accepted)
+	} else {
+		if !ent.IsSessionManaged() {
+			if ent.IsEmpty() {
+				s.handleNoOP(ent)
+				s.node.ApplyUpdate(ent, sm.Result{}, false, true, last)
+			} else {
+				panic("not session managed, not empty")
+			}
+		} else {
+			if ent.IsNewSessionRequest() {
+				smResult := s.handleRegisterSession(ent)
+				s.node.ApplyUpdate(ent, smResult, isEmptyResult(smResult), false, last)
+			} else if ent.IsEndOfSessionRequest() {
+				smResult := s.handleUnregisterSession(ent)
+				s.node.ApplyUpdate(ent, smResult, isEmptyResult(smResult), false, last)
+			} else {
+				if !s.entryAppliedInDiskSM(ent.Index) {
+          //执行更新状态机的动作,得到返回信息
+					smResult, ignored, rejected, err := s.handleUpdate(ent)
+					if err != nil {
+						return err
+					}
+					if !ignored {
+            //解除readIndex的阻塞
+            //解除proposal的阻塞
+						s.node.ApplyUpdate(ent, smResult, rejected, ignored, last)
+					}
+				} else {
+					// treat it as a NoOP entry
+					s.handleNoOP(pb.Entry{Index: ent.Index, Term: ent.Term})
+				}
+			}
+		}
+	}
+	index := s.GetLastApplied()
+	if index != ent.Index {
+		plog.Panicf("unexpected last applied value, %d, %d", index, ent.Index)
+	}
+	if last {
+    //设置状态机最后更新的index
+		s.setBatchedLastApplied(ent.Index)
+	}
+	return nil
+}
+
+```
 
