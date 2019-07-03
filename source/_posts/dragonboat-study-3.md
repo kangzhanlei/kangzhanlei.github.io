@@ -8,6 +8,7 @@ tags:
 	- dragonboat
 	- 一致性协议
 	- 源码分析
+	- go
 categories:
 	- 一致性协议
 ---

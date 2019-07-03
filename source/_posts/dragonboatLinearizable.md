@@ -5,6 +5,7 @@ tags:
 	- raft
 	- dragonboat
 	- 源码分析
+	- go
 categories:
 	- 一致性协议
 typora-root-url: ../_posts

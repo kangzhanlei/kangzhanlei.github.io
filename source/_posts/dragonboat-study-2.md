@@ -6,6 +6,7 @@ tags:
 	- raft
 	- 一致性协议
 	- 源码分析
+	- go
 keywords: raft,一致性协议,dragonboat
 categories:
 	- 一致性协议
