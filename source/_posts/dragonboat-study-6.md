@@ -1,11 +1,12 @@
 ---
-title: dragonboat学习笔记-实现线性一致性
-date: 2019-07-01 09:29:19
+title: dragonboat学习笔记-线性一致性
+date: 2019-07-04 09:29:19
 tags:
 	- raft
 	- dragonboat
 	- 源码分析
 	- go
+	- 一致性协议
 categories:
 	- 一致性协议
 typora-root-url: ../_posts

@@ -6,6 +6,7 @@ tags:
 	- dragonboat
 	- 源码分析
 	- go
+	- 一致性协议
 keywords: dragonboat,一致性协议,raft,源码分析
 categories:
 	- 一致性协议
