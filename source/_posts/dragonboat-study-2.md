@@ -675,6 +675,7 @@ func (r *raft) handleReplicateMessage(m pb.Message) {
     //如果相同,根据日志匹配原则,就可以把数据存下来了. 把匹配索引之后的垃圾数据全部删除
     //比如有人当选了 leader 之后,发了一堆乱七八糟的数据,然后挂了,别人当选了 leader,发来了信息
     //这个时候这个节点就要以人家的 leader 数据为准,把自己多余的乱七八糟的数据都删除掉.
+    //感觉有点不太对//TODO 再仔细研读一下
 		r.log.tryAppend(m.LogIndex, m.Entries)
 		lastIdx := m.LogIndex + uint64(len(m.Entries))
     //一个消息不是白发送的,他携带了leader 当前已经 commit到了哪里的信息,这里取俩个中最小值,向前推进.
