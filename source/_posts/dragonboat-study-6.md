@@ -45,7 +45,7 @@ typora-root-url: ../_posts
 
 * 如果leader刚刚当选，就收到了客户端的get请求，即便发送了心跳确定了leader的地位，那么是不是可以直接把数据返回给客户端呢？ 也不能。下面来分析这个情况。 
 
-  ![](dragonboatLinearizable/image-20190701100245887.png)
+  ![](dragonboat-study-6/image-20190701100245887.png)
 
   看这种情况（黑色的框标识leader，方框里的字表示term，横向的方框下标表示索引），用一个**[T,I]**来表示当前Term为T，index为I的数据。
 
