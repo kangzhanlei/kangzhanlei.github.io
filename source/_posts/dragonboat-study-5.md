@@ -353,7 +353,21 @@ func (s *StateMachine) handleConfigChange(ent pb.Entry) bool {
    }
    ```
 
-   
+
+
+
+基本结束了. dragonboat 没有实现joint consensus , 所以每次只能增删一个节点.  不过这都不是大问题. 为什么一次加入多个节点有问题,而每次只加入一个节点没有问题呢? 
+
+下面来梳理一下, 假设 ABC 三个节点, 现在增加一个 D . 假设 C 已经commited 并且 apply 到状态机之后, 知道了 D 的存在, 那么 C 和 D 知道了当前raft 组中应该有 4 个节点存在, 那么至少有 3 个选票才能当选 leader ,  但是 这个时候 A和 B 根本不知道 D 的存在, A 依然是 leader, 那么 A 和 B 都不可能投票给 D , 也就是说: 
+
+> 只要保证每次添加成员的时候, 新的成员集合和老的成员集合的大部分的成员是重合的, 那么就不会有任何问题
+
+移除节点 和 添加节点道理是差不多的.  修改节点就是先移除再添加. 
+
+论文中4.1 也提到了这种做法:
+
+> 当 Leader 收到 Configuration Change 的消息之后，它就将新的配置（后面叫 C-new，旧的叫 C-old） 作为一个特殊的 Raft Entry 发送到其他的 Follower 上面，任何节点只要收到了这个 Entry，就开始直接使用 C-new。当 C-new 这个 Log 被 committed，那么这次 Configuration Change 就结束了。
+> 
 
 
 
