@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>http://kzltime.cn</id>
+    <title>Kzl Time </title>
+    <updated>2021-01-24T07:38:22.276Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="http://kzltime.cn"/>
+    <link rel="self" href="http://kzltime.cn/atom.xml"/>
+    <subtitle>Less is More</subtitle>
+    <logo>http://kzltime.cn/images/avatar.png</logo>
+    <icon>http://kzltime.cn/favicon.ico</icon>
+    <rights>All rights reserved 2021, Kzl Time </rights>
+    <entry>
+        <title type="html"><![CDATA[Hello Gridea]]></title>
+        <id>http://kzltime.cn/post/hello-gridea/</id>
+        <link href="http://kzltime.cn/post/hello-gridea/">
+        </link>
+        <updated>2018-12-11T16:00:00.000Z</updated>
+        <summary type="html"><![CDATA[<p>👏  欢迎使用 <strong>Gridea</strong> ！<br>
+✍️  <strong>Gridea</strong> 一个静态博客写作客户端。你可以用它来记录你的生活、心情、知识、笔记、创意... ...</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>👏  欢迎使用 <strong>Gridea</strong> ！<br>
+✍️  <strong>Gridea</strong> 一个静态博客写作客户端。你可以用它来记录你的生活、心情、知识、笔记、创意... ...</p>
+]]></content>
+    </entry>
+</feed>
