@@ -1,319 +1,2219 @@
+<!DOCTYPE html>
 <html>
+
 <head>
-    <meta charset="utf-8" />
-<meta name="description" content="" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="keywords" content="Kzl Time">
+<meta name="description" content="Less is More">
+<meta name="theme-color" content="#000">
 <title>关于 | Kzl Time </title>
+<link rel="shortcut icon" href="/favicon.ico?v=1611478064288">
+<link rel="stylesheet" href="/media/css/pisces.css">
+<link rel="stylesheet" href="/media/fonts/font-awesome.css">
+<link
+  href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Rosario:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext"
+  rel="stylesheet" type="text/css">
 
-<link rel="shortcut icon" href="http://kzltime.cn/favicon.ico?v=1611476636155">
+<link href="/media/hljs/styles/default.css"
+  rel="stylesheet">
 
-<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
-<link rel="stylesheet" href="http://kzltime.cn/styles/main.css">
-<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"> -->
+<link rel="stylesheet" href="/styles/main.css">
 
-<style>
-    hr {
-        margin-top: 1rem;
-        margin-bottom: 1rem;
-        border: 0;
-        border-top: 1px solid rgba(0, 0, 0, 0.1);
-    }
-</style>
-
-<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
-<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dockerfile.min.js"></script>
-<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dart.min.js"></script>
-
-<!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script> -->
-<!-- DEMO JS -->
-<!--<script src="media/scripts/index.js"></script>-->
+<script src="/media/hljs/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.0/velocity.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.0/velocity.ui.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css"
+  integrity="sha384-zB1R0rpPzHqg7Kpt0Aljp8JPLqbXI3bhnPWROx27a9N0Ll6ZP/+DiW/UqRcLbRjq" crossorigin="anonymous">
 
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js"
+  integrity="sha384-y23I5Q6l+B6vatafAwxRu/0oK/79VlbSz7Q9aiSZUvyWYIYsd+qj+o24G5ZU2zJz" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js"
+  integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous"
+  onload="renderMathInElement(document.body);"></script>
+
+
+
+
+
+  <meta name="description" content="关于" />
+  <meta name="keywords" content="" />
 </head>
+
 <body>
-<div class="main gt-bg-theme-color-first">
-    <style>
-    /* 导航栏样式 */
-    .navbar {
-        position: relative;
-        display: -ms-flexbox;
-        display: flex;
-        -ms-flex-wrap: wrap;
-        flex-wrap: wrap;
-        -ms-flex-align: center;
-        align-items: center;
-        -ms-flex-pack: justify;
-        justify-content: space-between;
-        padding: 0.5rem 1rem;
-    }
-
-    .navbar-brand {
-        display: inline-block;
-        padding-top: 0.3125rem;
-        padding-bottom: 0.3125rem;
-        margin-right: 1rem;
-        font-size: 1.25rem;
-        line-height: inherit;
-        white-space: nowrap;
-    }
-
-    .navbar-brand:hover,
-    .navbar-brand:focus {
-        text-decoration: none;
-    }
-
-    .navbar-nav {
-        display: -ms-flexbox;
-        display: flex;
-        -ms-flex-direction: column;
-        flex-direction: column;
-        padding-left: 0;
-        margin-bottom: 0;
-        list-style: none;
-    }
-
-    .navbar-collapse {
-        -ms-flex-preferred-size: 100%;
-        flex-basis: 100%;
-        -ms-flex-positive: 1;
-        flex-grow: 1;
-        -ms-flex-align: center;
-        align-items: center;
-    }
-
-    .navbar-toggler {
-        padding: 0.25rem 0.75rem;
-        font-size: 1.25rem;
-        line-height: 1;
-        background-color: transparent;
-        border: 1px solid transparent;
-        border-radius: 0.25rem;
-    }
-
-    .navbar-toggler:hover,
-    .navbar-toggler:focus {
-        text-decoration: none;
-    }
-
-    @media (min-width: 992px) {
-        .navbar-expand-lg {
-            -ms-flex-flow: row nowrap;
-            flex-flow: row nowrap;
-            -ms-flex-pack: start;
-            justify-content: flex-start;
-        }
-
-        .navbar-expand-lg .navbar-nav {
-            -ms-flex-direction: row;
-            flex-direction: row;
-        }
-
-        .navbar-expand-lg .navbar-collapse {
-            display: -ms-flexbox !important;
-            display: flex !important;
-            -ms-flex-preferred-size: auto;
-            flex-basis: auto;
-        }
-
-        .navbar-expand-lg .navbar-toggler {
-            display: none;
-        }
-    }
-
-    @media (max-width: 991px) {
-        #navbarSupportedContent {
-            display: none;
-        }
-    }
-</style>
-<nav class="navbar navbar-expand-lg">
-    <div class="navbar-brand">
-        <img class="user-avatar" src="/images/avatar.png" alt="头像">
-        <div class="site-name gt-c-content-color-first">
-            Kzl Time 
+  <div class="head-top-line"></div>
+  <div class="header-box">
+    
+<div class="pisces">
+  <header class="header  ">
+    <div class="blog-header box-shadow-wrapper bg-color " id="header">
+      <div class="nav-toggle" id="nav_toggle">
+        <div class="toggle-box">
+          <div class="line line-top"></div>
+          <div class="line line-center"></div>
+          <div class="line line-bottom"></div>
         </div>
+      </div>
+      <div class="site-meta">       
+        <div class="site-title">
+          
+            <a href="/" class="brand">
+              <span>Kzl Time </span>
+            </a>  
+          
+        </div>
+        
+          <p class="subtitle">简约即广阔</p>
+        
+      </div>
+      <nav class="site-nav" id="site_nav">
+        <ul id="nav_ul">
+          
+            
+            
+            <li class="nav-item ">
+              
+              
+                <a href="/" target="_self">
+                  <i class="fa fa-home"></i> 首页
+                </a>
+              
+            </li>
+          
+            
+            
+            <li class="nav-item ">
+              
+              
+                <a href="/archives/" target="_self">
+                  <i class="fa fa-archive"></i> 归档
+                </a>
+              
+            </li>
+          
+            
+            
+            <li class="nav-item ">
+              
+              
+                <a href="/tags/" target="_self">
+                  <i class="fa fa-tags"></i> 标签
+                </a>
+              
+            </li>
+          
+            
+            
+            <li class="nav-item ">
+              
+              
+                <a href="/post/about/" target="_self">
+                  <i class="fa fa-user"></i> 关于
+                </a>
+              
+            </li>
+          
+          
+          
+            <li id="fa_search" class="nav-item">
+              <a href="javascript:void(0);">
+                <i class="fa fa-search"></i> <span class="language" data-lan="search">搜索</span>
+              </a>
+            </li>
+          
+        </ul>
+      </nav>
     </div>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <div class="navbar-nav mr-auto" style="text-align: center">
-            
-            <div class="nav-item">
-                
-                <a href="/" class="menu gt-a-link">
-                    首页
-                </a>
-                
-            </div>
-            
-            <div class="nav-item">
-                
-                <a href="/archives" class="menu gt-a-link">
-                    归档
-                </a>
-                
-            </div>
-            
-            <div class="nav-item">
-                
-                <a href="/tags" class="menu gt-a-link">
-                    标签
-                </a>
-                
-            </div>
-            
-            <div class="nav-item">
-                
-                <a href="/post/about" class="menu gt-a-link">
-                    关于
-                </a>
-                
-            </div>
-            
-        </div>
-        <div style="text-align: center">
-            <form id="gridea-search-form" style="position: relative" data-update="1611476636155"
-                action="/search/index.html">
-                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
-                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
-            </form>
-        </div>
-    </div>
-</nav>
-<script>
-    /* 移动端导航栏展开/收起切换 */
-    document.getElementById('changeNavbar').onclick = function () {
-        var element = document.getElementById('navbarSupportedContent');
-        if (element.style.display === 'none' || element.style.display === '') {
-            element.style.display = 'block';
-        } else {
-            element.style.display = 'none';
-        }
+  </header>
+</div>
+
+<script type="text/javascript"> 
+ 
+  let showNav = true;
+
+  let navToggle = document.querySelector('#nav_toggle'),
+  siteNav = document.querySelector('#site_nav');
+  
+  function navClick() {
+    let sideBar = document.querySelector('.sidebar');
+    let navUl = document.querySelector('#nav_ul');
+    navToggle.classList.toggle('nav-toggle-active');
+    siteNav.classList.toggle('nav-menu-active');
+    if (siteNav.classList.contains('nav-menu-active')) {
+      siteNav.style = "height: " + (navUl.children.length * 42) +"px !important";
+    } else {
+      siteNav.style = "";
     }
+  }
+
+  navToggle.addEventListener('click',navClick);  
 </script>
-    <div class="post-container">
-        <div class="post-detail gt-bg-theme-color-second">
-            <article class="gt-post-content">
-                <h2 class="post-title">
-                    关于
-                </h2>
-                <div class="post-info">
-                    <time class="post-time gt-c-content-color-first">
-                        · 2019-01-25 ·
-                    </time>
-                    
-                </div>
-                <div class="post-content">
-                    <p>✍️这仅仅就是一个学习笔记</p>
+  </div>
+  <div class="main-continer">
+    
+    <div
+      class="section-layout pisces ">
+      <div class="section-layout-wrapper">
+        
+
+<div class="sidebar">
+  
+    <div class="sidebar-box box-shadow-wrapper bg-color right-motion" id="sidebar">
+      
+        <div class="post-list-sidebar">
+          <div class="sidebar-title">
+            <span id="tocSideBar" class="sidebar-title-item sidebar-title-active language" data-lan="index">文章目录</span>
+            <span id="metaSideBar" class="sidebar-title-item language" data-lan="preview">站点概览</span>
+          </div>
+        </div>
+      
+      <div class="sidebar-body pisces" id="sidebar_body">
+        
+          
+            
+<div class="sidebar-wrapper box-shadow-wrapper bg-color">
+  <div class="sidebar-item">
+    <img class="site-author-image right-motion" src="/images/avatar.png"/>
+    <p class="site-author-name">学习笔记</p>
+    
+    <div class="site-description right-motion">
+      
+      
+      
+        <p>尘世中一个迷途小书童</p>
+      
+      
+    </div>
+    
+  </div>
+  <div class="sidebar-item side-item-stat right-motion">
+    <div class="sidebar-item-box">
+      <a href="/archives/">
+        
+        <span class="site-item-stat-count">2</span>
+        <span class="site-item-stat-name language" data-lan="article">文章</span>
+      </a>
+    </div>
+    <div class="sidebar-item-box">
+      <a href="">
+        <span class="site-item-stat-count">1</span>
+        <span class="site-item-stat-name language" data-lan="category">分类</span>
+      </a>
+    </div>
+    <div class="sidebar-item-box">
+      <a href="/tags/">
+        <span class="site-item-stat-count">1</span>
+        <span class="site-item-stat-name language" data-lan="tag">标签</span>
+      </a>
+    </div>
+  </div>
+  
+    
+      <div class="sidebar-item">
+        <span class="site-item-rss">
+            <i class="fa fa-rss"></i>
+            <a href="http://kzltime.cn/atom.xml" target="_blank">RSS</a>
+        </span>
+      </div>
+    
+  
+  
+
+  
+
+
+
+</div>
+          
+        
+      </div>
+    </div>
+  
+</div>
+<script>
+  const SIDEBAR_TITLE_ACTIVE = 'sidebar-title-active';
+  const SIDEBAR_BODY_ACTIVE = 'sidebar-body-active';
+  const SLIDE_UP_IN = 'slide-up-in';
+
+  let sidebar = document.querySelector('#sidebar'),
+  tocSideBar = document.querySelector('#tocSideBar'),
+  metaSideBar = document.querySelector('#metaSideBar'),
+  postToc = document.querySelector('#post_toc'),
+  postSiteMeta = document.querySelector('#post_side_meta'),
+  sidebarTitle = document.querySelector('.sidebar-title'),
+  sidebarBody = document.querySelector('#sidebar_body');
+
+  tocSideBar && tocSideBar.addEventListener('click', (e) => {
+    toggleSidebar(e);
+  });
+
+  metaSideBar && metaSideBar.addEventListener('click', (e) => {
+    toggleSidebar(e);
+  });
+
+  function toggleSidebar(e) {
+    let currentTitle = document.querySelector("."+SIDEBAR_TITLE_ACTIVE);
+    if (currentTitle == e.srcElement) {
+      return ;
+    }
+    let current, showElement, hideElement;
+    if (e.srcElement == metaSideBar) {
+      showElement = postSiteMeta;
+      hideElement = postToc;
+    } else if (e.srcElement == tocSideBar){
+      showElement = postToc;
+      hideElement = postSiteMeta;
+    }
+    currentTitle.classList.remove(SIDEBAR_TITLE_ACTIVE);
+    e.srcElement.classList.add(SIDEBAR_TITLE_ACTIVE);
+
+    window.Velocity(hideElement, 'stop');
+    window.Velocity(hideElement, 'transition.slideUpOut', {
+      display: 'none',
+      duration: 200,
+      complete: function () {
+        window.Velocity(showElement, 'transition.slideDownIn', {
+          duration: 200
+        });
+      }
+    })
+    hideElement.classList.remove(SIDEBAR_BODY_ACTIVE);
+    showElement.classList.add(SIDEBAR_BODY_ACTIVE);
+  }
+
+  postToc && postToc.addEventListener('transitionend', function() {
+    this.classList.remove(SLIDE_UP_IN);
+  });
+
+  if (sidebarBody) {
+    if (sidebarBody.classList.contains('pisces') || sidebarBody.classList.contains('gemini')) {
+      let hasFix = false;
+      let scrollEl = document.querySelector('.main-continer');
+      let limitTop = document.querySelector('#nav_ul').children.length * 42 + 162;
+      window.addEventListener('scroll', function(e) {
+        if (document.scrollingElement.scrollTop >= limitTop) {
+          if (!hasFix) {
+            sidebar.classList.add('sidebar-fixed');
+            hasFix = true;
+          }
+        } else {
+          if (hasFix) {
+            sidebar.classList.remove('sidebar-fixed');
+            hasFix = false;
+          }
+        }
+      });
+    }
+  }
+  
+</script>
+        <div class="section-box box-shadow-wrapper">
+          <div class="section bg-color post post-page">
+            <section class="post-header">
+  <h1 class="post-title">
+    <a class="post-title-link" href="http://kzltime.cn/post/about/">
+      关于
+    </a>
+  </h1>
+  <div class="post-meta">
+    
+    <span class="meta-item pc-show">
+      <i class="fa fa-calendar-o"></i>
+      <span class="language" data-lan="publish">发布于</span>
+      <span class="publish-time" data-t="2019-01-25 19:09:48">2019-01-25</span>
+      <span class="post-meta-divider pc-show">|</span>
+    </span>
+    
+    <span class="meta-item">
+      <i class="fa fa-clock-o"></i>
+      <span>1<span class="language" data-lan="minute">分钟</span></span>
+    </span>
+    <span class="meta-item">
+      <span class="post-meta-divider">|</span>
+      <i class="fa fa-file-word-o"></i>
+      <span>11<span class="pc-show language" data-lan="words">字数</span></span>
+    </span>
+    
+  </div>
+</section>
+            <div class="post-body next-md-body" id="post_body">
+              <p>✍️这仅仅就是一个学习笔记</p>
 <p>🏃‍♀🏃‍♀🏃‍♀🏃‍♀🏃‍♀</p>
 
-                </div>
-            </article>
-        </div>
-
-        
-
-        
-
-        
+            </div>
             
-                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css">
-<script src="https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js"></script>
-<script>
-    // md5.min.js
-    !function(n){
-        "use strict";
-        function d(n,t){var r=(65535&n)+(65535&t);return(n>>16)+(t>>16)+(r>>16)<<16|65535&r}
-        function f(n,t,r,e,o,u){return d((c=d(d(t,n),d(e,u)))<<(f=o)|c>>>32-f,r);var c,f}
-        function l(n,t,r,e,o,u,c){return f(t&r|~t&e,n,t,o,u,c)}
-        function v(n,t,r,e,o,u,c){return f(t&e|r&~e,n,t,o,u,c)}
-        function g(n,t,r,e,o,u,c){return f(t^r^e,n,t,o,u,c)}
-        function m(n,t,r,e,o,u,c){return f(r^(t|~e),n,t,o,u,c)}
-        function i(n,t){var r,e,o,u,c;n[t>>5]|=128<<t%32,n[14+(t+64>>>9<<4)]=t;var f=1732584193,i=-271733879,a=-1732584194,h=271733878;for(r=0;r<n.length;r+=16)f=l(e=f,o=i,u=a,c=h,n[r],7,-680876936),h=l(h,f,i,a,n[r+1],12,-389564586),a=l(a,h,f,i,n[r+2],17,606105819),i=l(i,a,h,f,n[r+3],22,-1044525330),f=l(f,i,a,h,n[r+4],7,-176418897),h=l(h,f,i,a,n[r+5],12,1200080426),a=l(a,h,f,i,n[r+6],17,-1473231341),i=l(i,a,h,f,n[r+7],22,-45705983),f=l(f,i,a,h,n[r+8],7,1770035416),h=l(h,f,i,a,n[r+9],12,-1958414417),a=l(a,h,f,i,n[r+10],17,-42063),i=l(i,a,h,f,n[r+11],22,-1990404162),f=l(f,i,a,h,n[r+12],7,1804603682),h=l(h,f,i,a,n[r+13],12,-40341101),a=l(a,h,f,i,n[r+14],17,-1502002290),f=v(f,i=l(i,a,h,f,n[r+15],22,1236535329),a,h,n[r+1],5,-165796510),h=v(h,f,i,a,n[r+6],9,-1069501632),a=v(a,h,f,i,n[r+11],14,643717713),i=v(i,a,h,f,n[r],20,-373897302),f=v(f,i,a,h,n[r+5],5,-701558691),h=v(h,f,i,a,n[r+10],9,38016083),a=v(a,h,f,i,n[r+15],14,-660478335),i=v(i,a,h,f,n[r+4],20,-405537848),f=v(f,i,a,h,n[r+9],5,568446438),h=v(h,f,i,a,n[r+14],9,-1019803690),a=v(a,h,f,i,n[r+3],14,-187363961),i=v(i,a,h,f,n[r+8],20,1163531501),f=v(f,i,a,h,n[r+13],5,-1444681467),h=v(h,f,i,a,n[r+2],9,-51403784),a=v(a,h,f,i,n[r+7],14,1735328473),f=g(f,i=v(i,a,h,f,n[r+12],20,-1926607734),a,h,n[r+5],4,-378558),h=g(h,f,i,a,n[r+8],11,-2022574463),a=g(a,h,f,i,n[r+11],16,1839030562),i=g(i,a,h,f,n[r+14],23,-35309556),f=g(f,i,a,h,n[r+1],4,-1530992060),h=g(h,f,i,a,n[r+4],11,1272893353),a=g(a,h,f,i,n[r+7],16,-155497632),i=g(i,a,h,f,n[r+10],23,-1094730640),f=g(f,i,a,h,n[r+13],4,681279174),h=g(h,f,i,a,n[r],11,-358537222),a=g(a,h,f,i,n[r+3],16,-722521979),i=g(i,a,h,f,n[r+6],23,76029189),f=g(f,i,a,h,n[r+9],4,-640364487),h=g(h,f,i,a,n[r+12],11,-421815835),a=g(a,h,f,i,n[r+15],16,530742520),f=m(f,i=g(i,a,h,f,n[r+2],23,-995338651),a,h,n[r],6,-198630844),h=m(h,f,i,a,n[r+7],10,1126891415),a=m(a,h,f,i,n[r+14],15,-1416354905),i=m(i,a,h,f,n[r+5],21,-57434055),f=m(f,i,a,h,n[r+12],6,1700485571),h=m(h,f,i,a,n[r+3],10,-1894986606),a=m(a,h,f,i,n[r+10],15,-1051523),i=m(i,a,h,f,n[r+1],21,-2054922799),f=m(f,i,a,h,n[r+8],6,1873313359),h=m(h,f,i,a,n[r+15],10,-30611744),a=m(a,h,f,i,n[r+6],15,-1560198380),i=m(i,a,h,f,n[r+13],21,1309151649),f=m(f,i,a,h,n[r+4],6,-145523070),h=m(h,f,i,a,n[r+11],10,-1120210379),a=m(a,h,f,i,n[r+2],15,718787259),i=m(i,a,h,f,n[r+9],21,-343485551),f=d(f,e),i=d(i,o),a=d(a,u),h=d(h,c);return[f,i,a,h]}
-        function a(n){var t,r="",e=32*n.length;for(t=0;t<e;t+=8)r+=String.fromCharCode(n[t>>5]>>>t%32&255);return r}
-        function h(n){var t,r=[];for(r[(n.length>>2)-1]=void 0,t=0;t<r.length;t+=1)r[t]=0;var e=8*n.length;for(t=0;t<e;t+=8)r[t>>5]|=(255&n.charCodeAt(t/8))<<t%32;return r}
-        function e(n){var t,r,e="0123456789abcdef",o="";for(r=0;r<n.length;r+=1)t=n.charCodeAt(r),o+=e.charAt(t>>>4&15)+e.charAt(15&t);return o}
-        function r(n){return unescape(encodeURIComponent(n))}
-        function o(n){return a(i(h(t=r(n)),8*t.length));var t}
-        function u(n,t){return function(n,t){var r,e,o=h(n),u=[],c=[];for(u[15]=c[15]=void 0,16<o.length&&(o=i(o,8*n.length)),r=0;r<16;r+=1)u[r]=909522486^o[r],c[r]=1549556828^o[r];return e=i(u.concat(h(t)),512+8*t.length),a(i(c.concat(e),640))}(r(n),r(t))}
-        function t(n,t,r){return t?r?u(t,n):e(u(t,n)):r?o(n):e(o(n))}
-        "function"==typeof define&&define.amd?define(function(){return t}):"object"==typeof module&&module.exports?module.exports=t:n.md5=t;
-    }(this);
-</script>
-
+            
+            
+  
+    
+      <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
 
 <div id="gitalk-container"></div>
 
 <script>
-
   var gitalk = new Gitalk({
     clientID: 'cd042d5069b1dd0833b9',
     clientSecret: 'd6c4d43abaeafa7a6097742cf0c98e78ee959157',
     repo: 'kangzhanlei.github.io',
     owner: 'kangzhanlei',
     admin: ['kangzhanlei'],
-    id: md5(location.pathname),      // Ensure uniqueness and length less than 50
-    distractionFreeMode: false       // Facebook-like distraction free mode
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+  gitalk.render('gitalk-container')
+</script>
+    
+    
+  
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-box">
+  <footer class="footer">
+    <div class="copyright">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | © 2019-2020 Theme By <a
+        href="https://github.com/hsxyhao/gridea-theme-next" target="_blank">HsxyHao</a>
+    </div>
+    <div class="poweredby">
+      Powered by <a href="mailto:kangzhanlei@qq.com" target="_blank">kzl</a>
+    </div>
+  </footer>
+  
+  
+  <div class="pisces back-to-top" id="back_to_top">
+    <i class="fa fa-arrow-up"></i>
+    
+    <span class="scrollpercent">
+      <span id="back_to_top_text">0</span>%
+    </span>
+    
+  </div>
+  
+  
+  
+</div>
+<script>
+
+  let sideBarOpen = 'sidebar-open';
+  let body = document.body;
+  let back2Top = document.querySelector('#back_to_top'),
+    back2TopText = document.querySelector('#back_to_top_text'),
+    drawerBox = document.querySelector('#drawer_box'),
+    rightSideBar = document.querySelector('.sidebar'),
+    viewport = document.querySelector('body');
+
+  function scrollAnimation(currentY, targetY) {
+
+    let needScrollTop = targetY - currentY
+    let _currentY = currentY
+    setTimeout(() => {
+      const dist = Math.ceil(needScrollTop / 10)
+      _currentY += dist
+      window.scrollTo(_currentY, currentY)
+      if (needScrollTop > 10 || needScrollTop < -10) {
+        scrollAnimation(_currentY, targetY)
+      } else {
+        window.scrollTo(_currentY, targetY)
+      }
+    }, 1)
+  }
+
+  back2Top.addEventListener("click", function (e) {
+    scrollAnimation(document.scrollingElement.scrollTop, 0);
+    e.stopPropagation();
+    return false;
+  });
+
+  window.addEventListener('scroll', function (e) {
+    let percent = document.scrollingElement.scrollTop / (document.scrollingElement.scrollHeight - document.scrollingElement.clientHeight) * 100;
+    if (percent > 1 && !back2Top.classList.contains('back-top-active')) {
+      back2Top.classList.add('back-top-active');
+    }
+    if (percent == 0) {
+      back2Top.classList.remove('back-top-active');
+    }
+    if (back2TopText) {
+      back2TopText.textContent = Math.floor(percent);
+    }
+  });
+
+
+  let hasCacu = false;
+  window.onresize = function () {
+    calcuHeight();
+  }
+
+  function calcuHeight() {
+    // 动态调整站点概览高度
+    if (!hasCacu && back2Top.classList.contains('pisces') || back2Top.classList.contains('gemini')) {
+      let sideBar = document.querySelector('.sidebar');
+      let navUl = document.querySelector('#site_nav');
+      sideBar.style = 'margin-top:' + (navUl.offsetHeight + navUl.offsetTop + 15) + 'px;';
+      hasCacu = true;
+    }
+  }
+  calcuHeight();
+
+  let open = false, MOTION_TIME = 300, RIGHT_MOVE_DIS = '320px';
+
+  if (drawerBox) {
+    let rightMotions = document.querySelectorAll('.right-motion');
+    let right = drawerBox.classList.contains('right');
+
+    let transitionDir = right ? "transition.slideRightIn" : "transition.slideLeftIn";
+
+    let openProp, closeProp;
+    if (right) {
+      openProp = {
+        paddingRight: RIGHT_MOVE_DIS
+      };
+      closeProp = {
+        paddingRight: '0px'
+      };
+    } else {
+      openProp = {
+        paddingLeft: RIGHT_MOVE_DIS
+      };
+      closeProp = {
+        paddingLeft: '0px'
+      };
+    }
+
+    drawerBox.onclick = function () {
+      open = !open;
+      window.Velocity(rightSideBar, 'stop');
+      window.Velocity(viewport, 'stop');
+      window.Velocity(rightMotions, 'stop');
+      if (open) {
+        window.Velocity(rightSideBar, {
+          width: RIGHT_MOVE_DIS
+        }, {
+          duration: MOTION_TIME,
+          begin: function () {
+            window.Velocity(rightMotions, transitionDir, {});
+          }
+        })
+        window.Velocity(viewport, openProp, {
+          duration: MOTION_TIME
+        });
+      } else {
+        window.Velocity(rightSideBar, {
+          width: '0px'
+        }, {
+          duration: MOTION_TIME,
+          begin: function () {
+            window.Velocity(rightMotions, {
+              opacity: 0
+            });
+          }
+        })
+        window.Velocity(viewport, closeProp, {
+          duration: MOTION_TIME
+        });
+      }
+      for (let i = 0; i < drawerBox.children.length; i++) {
+        drawerBox.children[i].classList.toggle('muse-line');
+      }
+      drawerBox.classList.toggle(sideBarOpen);
+    }
+  }
+
+  // 链接跳转
+  let newWindow = 'false'
+  if (newWindow === 'true') {
+    let links = document.querySelectorAll('.post-body a')
+    links.forEach(item => {
+      if (!item.classList.contains('btn')) {
+        item.setAttribute("target", "_blank");
+      }
+    })
+  }
+
+  let faSearch = document.querySelector('#fa_search');
+  faSearch.addEventListener('click', function () {
+    document.querySelector('#search_mask').style = ''
   })
 
-  gitalk.render('gitalk-container')
+  // 代码高亮
+  hljs.initHighlightingOnLoad();
+  
+  // 离开当前页title变化
+  var leaveTitle = "";
+  if (leaveTitle) {
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState == 'hidden') {
+        normal_title = document.title;
+        document.title = leaveTitle;
+      } else {
+        document.title = normal_title;
+      }
+    });
+  }
 
 </script>
 
-            
-
-            
-        
-
-        
-
-        <div class="site-footer gt-c-content-color-first">
-    <div class="slogan gt-c-content-color-first">
-        Less is More
-    </div>
-    <div class="social-container">
-        
-            
-                <a href="https://github.com/kangzhanlei" target="_blank">
-                    <i class="fab fa-github gt-c-content-color-first"></i>
-                </a>
-                
-                    
-            
-                    
-            
-                <a href="https://weibo.com/kangzhanlei" target="_blank">
-                    <i class="fab fa-weibo gt-c-content-color-first"></i>
-                </a>
-                
-                    
-            
-                <a href="https://www.zhihu.com/people/kangzl" target="_blank">
-                    <i class="fab fa-zhihu gt-c-content-color-first"></i>
-                </a>
-                
-                    
-            
-                    
-            
-                    
-    </div>
-    <div class="footer-info">
-        Powered by <a href="mailto:kangzhanlei@qq.com" target="_blank">kzl</a>
-    </div>
-</div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
 
 <script>
-    hljs.initHighlightingOnLoad()
+  let images = document.querySelectorAll('.section img');
+  console.log(images);
+  images.forEach(image => {
+    var parent = image.parentElement;
+    var next = image.nextElementSibling;
+    parent.removeChild(image);
+    var aelem = document.createElement('a');
+    aelem.href = image.src;
+    aelem.dataset['fancybox'] = 'images';
+    aelem.dataset['rel'] = 'fancybox-button';
+    aelem.classList.add('fancybox');
+    aelem.appendChild(image);
+    parent.insertBefore(aelem, next);
+  })
 </script>
+    <div class="reward-mask" style="display: none;">
+  <div class="reward-relative">
+    <span class="close" aria-hidden="true">x</span>
+    <div class="reward-body">
+      <h2>感谢您的支持，我会继续努力的!</h2>
+      <div class="reward-img-box">
+        <div style="position: relative; width: 140px; height: 140px;">
+          
+          
+          
+        </div>
+      </div>
+      <p class="reward-word">扫码打赏，你说多少就多少</p>
+      <p class="reward-tip">打开微信扫一扫，即可进行扫码打赏哦</p>
     </div>
+    <div class="bottom">
+      
+      
+    </div>
+  </div>
 </div>
+<style>
+  .reward-mask {
+    position: fixed;
+    z-index: 99999;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #00000054;
+  }
+
+  .reward-relative {
+    position: relative;
+    width: 480px;
+    text-align: center;
+    margin: 0 auto;
+    border-radius: 5px;
+    background-color: #fff;
+    top: 50%;
+    margin-top: -205px;
+  }
+
+  .reward-relative .close {
+    position: absolute;
+    right: 10px;
+    font-weight: normal;
+    font-size: 16px;
+    color: #929292;
+  }
+
+  .reward-body {
+    padding: 40px 20px 20px;
+  }
+
+  .bottom {
+    display: flex;
+  }
+
+  .reward-btn {
+    text-align: center;
+  }
+
+  .reward-btn-text {
+    display: inline-block;
+    cursor: pointer;
+    width: 60px;
+    height: 60px;
+    line-height: 60px;
+    border-radius: 50%;
+    background-color: #ff9734;
+    color: #FFF;
+    margin-top: 20px;
+  }
+
+  .pay-text {
+    margin-top: 10px;
+    padding: 10px;
+    flex: 1;
+    transition: all .2s linear;
+  }
+
+  .pay-text:hover {
+    background-color: #a5a5a536;
+  }
+
+  .reward-body h2 {
+    padding-top: 10px;
+    text-align: center;
+    color: #a3a3a3;
+    font-size: 16px;
+    font-weight: normal;
+    margin: 0 0 20px;
+  }
+
+  .reward-body h2:after,
+  .reward-body h2:before {
+    font-family: Arial, Helvetica, sans-serif;
+    background: 0 0;
+    width: 0;
+    height: 0;
+    font-style: normal;
+    color: #eee;
+    font-size: 80px;
+    position: absolute;
+    top: 20px;
+  }
+
+  .reward-body h2:before {
+    content: '\201c';
+    left: 50px;
+  }
+
+  .reward-body h2:after {
+    content: '\201d';
+    right: 80px;
+  }
+
+  .reward-img-box {
+    display: inline-block;
+    padding: 10px;
+    border: 6px solid #ea5f00;
+    margin: 0 auto;
+    border-radius: 3px;
+    position: relative;
+  }
+
+  .reward-img {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+  }
+
+  @media (max-width: 767px) {
+    .reward-relative {
+      height: 100%;
+      top: 0px;
+      margin-top: 0;
+      width: auto;
+    }
+
+    .reward-relative .bottom {
+      flex-direction: column;
+    }
+
+    .reward-relative .pay-text {
+      width: 80%;
+      margin: 5px auto;
+      border: 1px solid silver;
+      padding: 6px;
+      border-radius: 4px;
+    }
+
+    .reward-body h2:after {
+      right: 40px;
+    }
+
+    .reward-body h2:after,
+    .reward-body h2:before {
+      font-size: 60px;
+    }
+
+    .reward-body h2:before {
+      left: 20px;
+    }
+  }
+</style>
+<script>
+  !function () {
+    var mask = document.querySelector('.reward-mask');
+    let close = document.querySelector('.reward-relative .close');
+    let rewardBtn = document.querySelector('.reward-btn');
+
+    let zfb = document.querySelector('#zfb'),
+      wx = document.querySelector('#wx'),
+      zfbBtn = document.querySelector('#zfbBtn'),
+      wxBtn = document.querySelector('#wxBtn');
+
+    if (zfbBtn && wxBtn) {
+      zfbBtn.addEventListener('click', () => {
+        window.Velocity(zfb, 'transition.slideLeftIn', {
+          duration: 400
+        });
+        window.Velocity(wx, 'transition.slideRightOut', {
+          display: 'none',
+          duration: 400
+        });
+      });
+
+      wxBtn.addEventListener('click', () => {
+        window.Velocity(wx, 'transition.slideRightIn', {
+          duration: 400
+        });
+        window.Velocity(zfb, 'transition.slideLeftOut', {
+          display: 'none',
+          duration: 400
+        });
+      });
+    }
+
+    rewardBtn.addEventListener('click', (e) => {
+      window.Velocity(mask, 'transition.slideDownIn', {
+        duration: 400
+      })
+    });
+
+    close.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.Velocity(mask, 'transition.slideUpOut', {
+        duration: 400
+      })
+    })
+  }()
+</script>
+
+  </div>
 </body>
+
+<div class="search-mask" id="search_mask" style="display: none;">
+  <div class="search-box">
+    <div class="search-title">
+      <i class="fa fa-search"></i>
+      <div class="input-box">
+        <input id="search" type="text" class="language" data-lan="search" placeholder="搜索">
+      </div>
+      <i id="close" class="fa fa-times-circle"></i>
+    </div>
+    <div class="stat-box">
+      <span id="stat_count">0</span><span class="language" data-lan="stat">条相关条目，使用了</span><span id="stat_times">0</span><span class="language" data-lan="stat-time">毫秒</span>
+      <hr>
+    </div>
+    <div class="result" id="result">
+      
+      <div class="item">
+        <a class="result-title" style="opacity: 0;" href="http://kzltime.cn/post/kubernetes-probe-manager/"" data-c="
+          &lt;blockquote&gt;
+&lt;p&gt;所有的相关代码，都基于kubernetes v1.19.3&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;1-启动探测&#34;&gt;1. 启动探测&lt;/h1&gt;
+&lt;p&gt;kubelet负责周期性的调谐 Pod，在需要创建新的Pod 的时候，对每一个 Pod 增加一个探针来探测 Pod 的状态。 下面是启动代码&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//kubelet/kubelet.go
+func (kl *Kubelet) HandlePodAdditions(pods []*v1.Pod) {
+	start := kl.clock.Now()
+	sort.Sort(sliceutils.PodsByCreationTime(pods))
+	for _, pod := range pods {
+		existingPods := kl.podManager.GetPods()
+		//增加到 podManager 中，以后查询 pod 都会从这里查
+		kl.podManager.AddPod(pod)
+		//如果是镜像 Pod，他只是静态 Pod 的一个影子而已，不会参与增加，删除什么的
+		//对镜像 Pod 的操作，都只是对静态 Pod 的一次刷新而已
+		if kubetypes.IsMirrorPod(pod) {
+			kl.handleMirrorPod(pod, start)
+			continue
+		}
+
+		if !kl.podIsTerminated(pod) {
+			activePods := kl.filterOutTerminatedPods(existingPods)
+			//检查当前节点是否可以接受新的 Pod 申请
+			if ok, reason, message := kl.canAdmitPod(activePods, pod); !ok {
+				kl.rejectPod(pod, reason, message)
+				continue
+			}
+		}
+		mirrorPod, _ := kl.podManager.GetMirrorPodByPod(pod)
+		//交给 worker 去处理 Pod 的新增事宜，这里暂且不关注
+		kl.dispatchWork(pod, kubetypes.SyncPodCreate, mirrorPod, start)
+		//本章的重点，将新增的 Pod 加入到probeManager中去
+		**kl.probeManager.AddPod(pod)**
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h1 id=&#34;2-probemanager&#34;&gt;2. probeManager&lt;/h1&gt;
+&lt;p&gt;probeManager 主要对 Pod 进行可用性的探测， 具体来看&lt;code&gt;AddPod&lt;/code&gt;是怎么处理的&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//kubelet/probe/prober_manager.go
+func (m *manager) AddPod(pod *v1.Pod) {
+	//因为可能同时要处理多个 pod，加锁
+	m.workerLock.Lock()
+	defer m.workerLock.Unlock()
+
+	key := probeKey{podUID: pod.UID}
+	//获取所有的容器
+	for _, c := range pod.Spec.Containers {
+		key.containerName = c.Name
+		//如果支持StartupProbe
+		if c.StartupProbe != nil &amp;amp;&amp;amp; utilfeature.DefaultFeatureGate.Enabled(features.StartupProbe) {
+			key.probeType = startup
+			if _, ok := m.workers[key]; ok {
+				klog.Errorf(&amp;quot;Startup probe already exists! %v - %v&amp;quot;,
+					format.Pod(pod), c.Name)
+				return
+			}
+			w := newWorker(m, startup, pod, c)
+			m.workers[key] = w
+			go w.run()
+		}
+		//处理 ReadnessProbe
+		if c.ReadinessProbe != nil {
+			key.probeType = readiness
+			if _, ok := m.workers[key]; ok {
+				klog.Errorf(&amp;quot;Readiness probe already exists! %v - %v&amp;quot;,
+					format.Pod(pod), c.Name)
+				return
+			}
+			w := newWorker(m, readiness, pod, c)
+			m.workers[key] = w
+			go w.run()
+		}
+		//处理 LivenessProbe
+		if c.LivenessProbe != nil {
+			key.probeType = liveness
+			if _, ok := m.workers[key]; ok {
+				klog.Errorf(&amp;quot;Liveness probe already exists! %v - %v&amp;quot;,
+					format.Pod(pod), c.Name)
+				return
+			}
+			w := newWorker(m, liveness, pod, c)
+			m.workers[key] = w
+			go w.run()
+		}
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;从代码上来看, probeManager 支持三种类型的探针:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;StartupProbe&lt;/li&gt;
+&lt;li&gt;ReadinessProbe&lt;/li&gt;
+&lt;li&gt;LivenessProbe&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;不管是什么类型的探针,最终都是为&lt;code&gt;每个容器产生了一个新的 worker&lt;/code&gt; 来处理的.&lt;/p&gt;
+&lt;h1 id=&#34;3-worker&#34;&gt;3. worker&lt;/h1&gt;
+&lt;p&gt;来看下 worker 是做什么用的&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;// kubelet/probe/worker.go
+func newWorker(
+	m *manager,
+	probeType probeType,
+	pod *v1.Pod,
+	container v1.Container) *worker {
+	//构造一个 worker 对象
+	w := &amp;amp;worker{
+		stopCh:       make(chan struct{}, 1), // Buffer so stop() can be non-blocking.
+		pod:          pod,
+		container:    container,
+		probeType:    probeType,
+		probeManager: m,
+	}
+
+	switch probeType {
+	case readiness:
+		w.spec = container.ReadinessProbe
+		//探测的结果放到readnessManager中
+		w.resultsManager = m.readinessManager
+		w.initialValue = results.Failure
+	case liveness:
+		w.spec = container.LivenessProbe
+		//探测的结果放到livenessManager中
+		w.resultsManager = m.livenessManager
+		w.initialValue = results.Success
+	case startup:
+		w.spec = container.StartupProbe
+		//探测的结果放到startupManager中
+		w.resultsManager = m.startupManager
+		w.initialValue = results.Unknown
+	}
+	......
+	return w
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;在构造 worker 的时候,不同类型的探针, 最终的探测结果交给了不同的 &lt;code&gt;resultManager&lt;/code&gt; 去处理.  下面来看下他的 Run 方法是如何进行容器探测的&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;// kubelet/probe/worker.go
+
+func (w *worker) run() {
+	probeTickerPeriod := time.Duration(w.spec.PeriodSeconds) * time.Second
+	time.Sleep(time.Duration(rand.Float64() * float64(probeTickerPeriod)))
+	//一个 ticker, 每隔一定的时间去探测一次
+	probeTicker := time.NewTicker(probeTickerPeriod)
+
+	defer func() {
+		// 如果关闭了 pod, 所有的探测都可以取消了
+		probeTicker.Stop()
+		if !w.containerID.IsEmpty() {
+			w.resultsManager.Remove(w.containerID)
+		}
+
+		w.probeManager.removeWorker(w.pod.UID, w.container.Name, w.probeType)
+		ProberResults.Delete(w.proberResultsSuccessfulMetricLabels)
+		ProberResults.Delete(w.proberResultsFailedMetricLabels)
+		ProberResults.Delete(w.proberResultsUnknownMetricLabels)
+	}()
+
+probeLoop:
+	//每隔一定的时间去执行 doProbe 去探测,如果主动要求停止,则退出循环
+	for w.doProbe() {
+		// Wait for next probe tick.
+		select {
+		case &amp;lt;-w.stopCh:
+			break probeLoop
+		case &amp;lt;-probeTicker.C:
+			// continue
+		}
+	}
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;探测的重点转移到了doProbe方法, 来看下具体的实现&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;// kubelet/probe/worker.go
+func (w *worker) doProbe() (keepGoing bool) {
+	defer func() { recover() }() // Actually eat panics (HandleCrash takes care of logging)
+	defer runtime.HandleCrash(func(_ interface{}) { keepGoing = true })
+	//获取 pod 的状态,获取不到就继续下一次循环
+	status, ok := w.probeManager.statusManager.GetPodStatus(w.pod.UID)
+	if !ok {
+		return true
+	}
+
+	//如果 Pod 关闭了或者终止了,那么探测器或者也没用,就不探测了,返回 false 自动终止
+	if status.Phase == v1.PodFailed || status.Phase == v1.PodSucceeded {
+		return false
+	}
+	//获取容器的状态,如果不存在,继续等着
+	c, ok := podutil.GetContainerStatus(status.ContainerStatuses, w.container.Name)
+	if !ok || len(c.ContainerID) == 0 {
+		return true // Wait for more information.
+	}
+	//这里重点说明一下是什么意思
+	//Pod 探测容器的状态,如果容器启动不成功,kubelet 会尝试重启 Pod, 会重新分配一个容器的 ID,
+	//但是 worker 只有一个, 如果容器的 ID 和之前不一致了,说明了什么? 说明了容器被重启了,那么这里
+	//需要设置onHold=false,表示我这个 worker 需要等待新的容器启动完成了,我再开启探测它, 别人家还
+	//没有启动呢,我就拼命的探测,一探测说人家挂了,又重启,还没等到人家起来呢,又探测又重启,无休止的循环了
+	//所以这里等待一下容器启动完成之后再进行探测. 
+	if w.containerID.String() != c.ContainerID {
+		if !w.containerID.IsEmpty() {
+			w.resultsManager.Remove(w.containerID)
+		}
+		w.containerID = kubecontainer.ParseContainerID(c.ContainerID)
+		w.resultsManager.Set(w.containerID, w.initialValue, w.pod)
+		// We&#39;ve got a new container; resume probing.
+		**w.onHold = false**
+	}
+
+	if w.onHold {
+		//worker 在等待,直到新的容器创建成功
+		return true
+	}
+
+	if c.State.Running == nil {
+		//不是运行状态的容器
+		if !w.containerID.IsEmpty() {
+			//直接给他的状态设置为 Failure
+			w.resultsManager.Set(w.containerID, results.Failure, w.pod)
+		}
+		// 如果容器不需要被重启的话,直接不探测了,返回 false 就可以了
+		return c.State.Terminated == nil ||
+			w.pod.Spec.RestartPolicy != v1.RestartPolicyNever
+	}
+
+	//启动之后不会立刻探测,有可能人家还没有准备好, 等待一定的时间之后再去真正的探测
+	if int32(time.Since(c.State.Running.StartedAt.Time).Seconds()) &amp;lt; w.spec.InitialDelaySeconds {
+		return true
+	}
+
+	if c.Started != nil &amp;amp;&amp;amp; *c.Started {
+		// 如果容器已经起来了并且通过了探针探测, 停止 startup的探测
+		if w.probeType == startup {
+			return true
+		}
+	} else {
+		// 如果容器尚未启动完成, 那么其他的探测器就先等等再探测,返回 true 表示等下一个周期再来
+		if w.probeType != startup {
+			return true
+		}
+	}
+
+	//执行探测逻辑
+	result, err := w.probeManager.prober.probe(w.probeType, w.pod, status, w.container, w.containerID)
+	if err != nil {
+	//失败了继续探测
+		return true
+	}
+	......
+	if (result == results.Failure &amp;amp;&amp;amp; w.resultRun &amp;lt; int(w.spec.FailureThreshold)) ||
+		(result == results.Success &amp;amp;&amp;amp; w.resultRun &amp;lt; int(w.spec.SuccessThreshold)) {
+		//探测一次不认为是成功或者失败,要多探测几次,达到阈值之后才可以认为有结果了,这里持续探测
+		return true
+	}
+	//把探测的结果写到resultManager中,不同的探针有不同的 resultManager
+	w.resultsManager.Set(w.containerID, result, w.pod)
+
+	if (w.probeType == liveness || w.probeType == startup) &amp;amp;&amp;amp; result == results.Failure {
+		// 容器探活探针探测失败的话,他将会被重启, 停止当前的探测,直到新的容器重新被拉起
+		w.onHold = true
+		w.resultRun = 0
+	}
+
+	return true
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;doProbe&lt;/code&gt; 主要做了几件事情:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;根据状态判断是否要持续探测&lt;/li&gt;
+&lt;li&gt;执行探测逻辑 ,  探测一定的次数, 需要等到阈值满足之后才认为有了结果&lt;/li&gt;
+&lt;li&gt;把结果写到 resultManager 中,供别人使用.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;真正的探测逻辑其实比较简单,如下&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//kubelet/prober/probe.go
+func (pb *prober) probe(probeType probeType, pod *v1.Pod, status v1.PodStatus, container v1.Container, containerID kubecontainer.ContainerID) (results.Result, error) {
+	var probeSpec *v1.Probe
+	//根据不同的探测, 设置不同的探测方法
+	switch probeType {
+	case readiness:
+		probeSpec = container.ReadinessProbe
+	case liveness:
+		probeSpec = container.LivenessProbe
+	case startup:
+		probeSpec = container.StartupProbe
+	default:
+		return results.Failure, fmt.Errorf(&amp;quot;unknown probe type: %q&amp;quot;, probeType)
+	}
+
+	ctrName := fmt.Sprintf(&amp;quot;%s:%s&amp;quot;, format.Pod(pod), container.Name)
+	if probeSpec == nil {
+		klog.Warningf(&amp;quot;%s probe for %s is nil&amp;quot;, probeType, ctrName)
+		return results.Success, nil
+	}
+	//开启探测逻辑, 这里带有 5 次重试,失败了自己循环探测
+	result, output, err := pb.runProbeWithRetries(probeType, probeSpec, pod, status, container, containerID, maxProbeRetries)
+	if err != nil || (result != probe.Success &amp;amp;&amp;amp; result != probe.Warning) {
+		// Probe failed in one way or another.
+		if err != nil {
+			klog.V(1).Infof(&amp;quot;%s probe for %q errored: %v&amp;quot;, probeType, ctrName, err)
+			pb.recordContainerEvent(pod, &amp;amp;container, v1.EventTypeWarning, events.ContainerUnhealthy, &amp;quot;%s probe errored: %v&amp;quot;, probeType, err)
+		} else { // result != probe.Success
+			klog.V(1).Infof(&amp;quot;%s probe for %q failed (%v): %s&amp;quot;, probeType, ctrName, result, output)
+			pb.recordContainerEvent(pod, &amp;amp;container, v1.EventTypeWarning, events.ContainerUnhealthy, &amp;quot;%s probe failed: %s&amp;quot;, probeType, output)
+		}
+		return results.Failure, err
+	}
+	if result == probe.Warning {
+		pb.recordContainerEvent(pod, &amp;amp;container, v1.EventTypeWarning, events.ContainerProbeWarning, &amp;quot;%s probe warning: %s&amp;quot;, probeType, output)
+		klog.V(3).Infof(&amp;quot;%s probe for %q succeeded with a warning: %s&amp;quot;, probeType, ctrName, output)
+	} else {
+		klog.V(3).Infof(&amp;quot;%s probe for %q succeeded&amp;quot;, probeType, ctrName)
+	}
+	return results.Success, nil
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//kubelet/prober/probe.go
+func (pb *prober) runProbe(probeType probeType, p *v1.Probe, pod *v1.Pod, status v1.PodStatus, container v1.Container, containerID kubecontainer.ContainerID) (probe.Result, string, error) {
+	timeout := time.Duration(p.TimeoutSeconds) * time.Second
+	//如果是 exec 模式,就是在容器里执行一个命令,返回执行的结果
+	if p.Exec != nil {
+		klog.V(4).Infof(&amp;quot;Exec-Probe Pod: %v, Container: %v, Command: %v&amp;quot;, pod.Name, container.Name, p.Exec.Command)
+		command := kubecontainer.ExpandContainerCommandOnlyStatic(p.Exec.Command, container.Env)
+		return pb.exec.Probe(pb.newExecInContainer(container, containerID, command, timeout))
+	}
+	//如果是 http 模式,执行 http 调用,返回 code
+	if p.HTTPGet != nil {
+		scheme := strings.ToLower(string(p.HTTPGet.Scheme))
+		host := p.HTTPGet.Host
+		if host == &amp;quot;&amp;quot; {
+			host = status.PodIP
+		}
+		port, err := extractPort(p.HTTPGet.Port, container)
+		if err != nil {
+			return probe.Unknown, &amp;quot;&amp;quot;, err
+		}
+		path := p.HTTPGet.Path
+		klog.V(4).Infof(&amp;quot;HTTP-Probe Host: %v://%v, Port: %v, Path: %v&amp;quot;, scheme, host, port, path)
+		url := formatURL(scheme, host, port, path)
+		headers := buildHeader(p.HTTPGet.HTTPHeaders)
+		klog.V(4).Infof(&amp;quot;HTTP-Probe Headers: %v&amp;quot;, headers)
+		switch probeType {
+		case liveness:
+			return pb.livenessHTTP.Probe(url, headers, timeout)
+		case startup:
+			return pb.startupHTTP.Probe(url, headers, timeout)
+		default:
+			return pb.readinessHTTP.Probe(url, headers, timeout)
+		}
+	}
+	//如果是 tcp 探测,直接拨号,返回探测结果即可
+	if p.TCPSocket != nil {
+		port, err := extractPort(p.TCPSocket.Port, container)
+		if err != nil {
+			return probe.Unknown, &amp;quot;&amp;quot;, err
+		}
+		host := p.TCPSocket.Host
+		if host == &amp;quot;&amp;quot; {
+			host = status.PodIP
+		}
+		klog.V(4).Infof(&amp;quot;TCP-Probe Host: %v, Port: %v, Timeout: %v&amp;quot;, host, port, timeout)
+		return pb.tcp.Probe(host, port, timeout)
+	}
+	klog.Warningf(&amp;quot;Failed to find probe builder for container: %v&amp;quot;, container)
+	return probe.Unknown, &amp;quot;&amp;quot;, fmt.Errorf(&amp;quot;missing probe handler for %s:%s&amp;quot;, format.Pod(pod), container.Name)
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;综上, 探针有三种不同的探测方式&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Exec 表示在容器内执行一个命令,返回执行的结果&lt;/li&gt;
+&lt;li&gt;Http 表示执行一个 http 请求,返回码来决定成功还是失败&lt;/li&gt;
+&lt;li&gt;Tcp 表示执行一个拨号,拨通了就认为是成功了&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&#34;4-resultmanager&#34;&gt;4. resultManager&lt;/h1&gt;
+&lt;p&gt;上文描述了探针是如何执行的, 执行后的结果都收集到了对应的 resultManager 中,  类型如下:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;readinessManager&lt;/li&gt;
+&lt;li&gt;livenessManager&lt;/li&gt;
+&lt;li&gt;startupManager&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;下面针对这三种探针的处理方式, 展开叙述&lt;/p&gt;
+&lt;h2 id=&#34;41-livenessmanager&#34;&gt;4.1 livenessManager&lt;/h2&gt;
+&lt;p&gt;这种类型的探针, 称为探活探针, 意思是, 探测的结果, 直接决定着 Pod 的生死, 如果探测失败了, kubelet 将会重启它.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//kubelet/prober/results/results_manager.go 
+func (m *manager) Set(id kubecontainer.ContainerID, result Result, pod *v1.Pod) {
+	if m.setInternal(id, result) {
+		m.updates &amp;lt;- Update{id, result, pod.UID}
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;设置容器的探测结果, 其实就是把一个 &lt;code&gt;Update&lt;/code&gt;结构体, 放入了updates的 channel 中去. 有人放,肯定有人读, 那么谁读了呢?  kubelet 去读, 来看代码&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//kubelet/kubelet.go
+
+// 截取syncLoopIteration方法, 大循环中的一部分,具体代码分析见 kubelet 启动篇
+case update := &amp;lt;-kl.livenessManager.Updates():
+		if update.Result == proberesults.Failure {
+			// The liveness manager detected a failure; sync the pod.
+
+			// We should not use the pod from livenessManager, because it is never updated after
+			// initialization.
+			pod, ok := kl.podManager.GetPodByUID(update.PodUID)
+			if !ok {
+				// If the pod no longer exists, ignore the update.
+				klog.V(4).Infof(&amp;quot;SyncLoop (container unhealthy): ignore irrelevant update: %#v&amp;quot;, update)
+				break
+			}
+			klog.V(1).Infof(&amp;quot;SyncLoop (container unhealthy): %q&amp;quot;, format.Pod(pod))
+			handler.HandlePodSyncs([]*v1.Pod{pod})
+		}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;kubelet 启动之后, 会从livenessManager的探测结果中读取 &lt;code&gt;Update&lt;/code&gt; , 如果有容器失败了, 那么会获取这个容器对应的 Pod, 然后调用&lt;code&gt;HandlePodSyncs&lt;/code&gt;方法, 杀死这个 pod,然后重新拉起一个新的 Pod. 具体的代码见 kubelet, 这里不再展开了.&lt;/p&gt;
+&lt;h2 id=&#34;42-readinessmanager&#34;&gt;4.2 readinessManager&lt;/h2&gt;
+&lt;p&gt;这种类型的探针,称为就绪探针, 意思是, 当容器准备好了,可以接受请求了, 比如 service 就是在就绪探针有了结果的情况下, 才会把流量转发到 Pod 中来. 不然没有就绪就转发流量,可能会造成流量丢失.&lt;/p&gt;
+&lt;p&gt;在prober_manager启动的时候, 执行了以下逻辑&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//kubelet/prober/prober_manager.go 
+func (m *manager) Start() {
+	// Start syncing readiness.
+	go wait.Forever(m.updateReadiness, 0)
+	// Start syncing startup.
+	go wait.Forever(m.updateStartup, 0)
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;启动了两个循环, 不停的探测&lt;code&gt;updateReadiness&lt;/code&gt; 和 &lt;code&gt;updateStartup&lt;/code&gt; , 下面来看 updateReadiness是如何处理的&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//kubelet/prober/prober_manager.go 
+func (m *manager) updateReadiness() {
+	//从channel 中获取状态变化
+	update := &amp;lt;-m.readinessManager.Updates()
+	//获取状态 
+	ready := update.Result == results.Success
+	//通过statusManager设置状态 , 交给了statusManager去处理. 具体的见statusManager逻辑
+	m.statusManager.SetContainerReadiness(update.PodUID, update.ContainerID, ready)
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;从上诉代码来看, 就绪探针把容器的探测结果, 统一交给了statusManager来处理. 具体的逻辑见statusManager. 简单来说就是把状态更新到 etcd, 然后 service 会根据状态来做进一步的判断.&lt;/p&gt;
+&lt;h2 id=&#34;43-startupmanager&#34;&gt;4.3 startupManager&lt;/h2&gt;
+&lt;p&gt;和readiness处理逻辑几乎一致, 不展开叙述&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//kubelet/prober/prober_manager.go 
+func (m *manager) updateStartup() {
+	update := &amp;lt;-m.startupManager.Updates()
+
+	started := update.Result == results.Success
+	m.statusManager.SetContainerStartup(update.PodUID, update.ContainerID, started)
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h1 id=&#34;5-总结&#34;&gt;5. 总结&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;livenessProbe 用来探活, 检查容器是否还在运行, 可以为 pod 中的每个容器设置存活探针. 如果探测失败, kubernetes 将定期的执行探针并重新启动容器&lt;/li&gt;
+&lt;li&gt;readinessProbe 就绪探针用来确定, 特定的 pod 是否可以接受客户端的请求, 当容器就绪探针返回成功时, 表示容器已经准备好接受请求了.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;启动容器时，可以为Kubernetes配置一个等待时间，经过等待时间后才可以执行第一次准备就绪检查。之后，它会周期性地调用探针，并根据就绪探针的结果采取行动。如果某个pod报告它尚未准备就绪，则会从该服务中删除该pod。如果pod再次准备就绪，则重新添加pod。与存活探针不同，如果容器未通过准备检查，则不会被终止或重新启动。这是存活探针与就绪探针之间的重要区别。存活探针通过杀死异常的容器并用新的正常容器替代它们来保持pod正常工作，而就绪探针确保只有准备好处理请求的pod才可以接收它们（请求）。这在容器启动时最为必要，当然在容器运行一段时间后也是有用的。&lt;/p&gt;
+&lt;p&gt;探针支持是三种探测容器的机制&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Http Get 探针对容器的 IP 地址(自己指定的端口和路径) 执行 Http Get 请求, 如果探测成功, 且响应代码不代表错误, 则认为探测成功, 否则认为失败,容器将被重新启动&lt;/li&gt;
+&lt;li&gt;Tcp套接字尝试与容器指定的端口建立 tcp 连接,如果连接建立成功,探测成功&lt;/li&gt;
+&lt;li&gt;Exec 在容器内执行任意命令,并检查命令的退出状态码, 如果状态码是 0 , 表示探测成功. 其他被认为探测失败&lt;/li&gt;
+&lt;/ul&gt;
+">kubernetes学习笔记 -  Probe Manager</a>
+      </div>
+      
+      <div class="item">
+        <a class="result-title" style="opacity: 0;" href="http://kzltime.cn/post/volume-manager/"" data-c="
+          &lt;blockquote&gt;
+&lt;p&gt;所有的相关代码，都基于kubernetes v1.19.3&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;1-运行原理&#34;&gt;1. 运行原理&lt;/h1&gt;
+&lt;p&gt;kubelet启动时会调用&lt;code&gt;volumeMananger&lt;/code&gt;的 &lt;code&gt;Run&lt;/code&gt; 方法启动卷管理器。 它负责在当前节点的 Pod 和 Volume 发生变化的时候，对 Volume 进行挂载和卸载等操作。&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;func (vm *volumeManager) Run(sourcesReady config.SourcesReady, stopCh &amp;lt;-chan struct{}) {
+	defer runtime.HandleCrash()
+	go vm.desiredStateOfWorldPopulator.Run(sourcesReady, stopCh)
+	go vm.reconciler.Run(stopCh)
+	metrics.Register(vm.actualStateOfWorld, vm.desiredStateOfWorld, vm.volumePluginMgr)
+	if vm.kubeClient != nil {
+		vm.volumePluginMgr.Run(stopCh)
+	}
+	&amp;lt;-stopCh
+	klog.Infof(&amp;quot;Shutting down Kubelet Volume Manager&amp;quot;)
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;主要做两件事情&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;desiredStateOfWorldPopulator主要负责从 API server 中获取 Pod 的信息，将他们更新到本地的一个&lt;code&gt;DesiredStateOfWorld&lt;/code&gt;的数据结构中。&lt;/li&gt;
+&lt;li&gt;reconciler 负责调谐，也就是根据&lt;code&gt;DesiredStateOfWorld&lt;/code&gt; 的状态变更，更新实际的挂载信息。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;在 Pod 的启动过程中，如果需要挂载卷，则首先等待卷挂载完成之后，才可以继续向下进行。&lt;/p&gt;
+&lt;h1 id=&#34;2-desiredstateofworld&#34;&gt;2. DesiredStateOfWorld&lt;/h1&gt;
+&lt;p&gt;执行一个大循环， 做的事情大致也有两个&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;findAndAddNewPods&lt;/li&gt;
+&lt;li&gt;findAndRemoveDeletedPods&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;通过以上两个方法，分别获取节点中被添加的新 Pod 或者已经删除的老的 Pod，获取到 Pod 之后会根据当前的状态修改期望状态&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;findAndAddNewPods&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//kubelet/volumemanager/populator/desired_state_of_world_populator.go
+
+func (dswp *desiredStateOfWorldPopulator) findAndAddNewPods() {
+	// Map unique pod name to outer volume name to MountedVolume.
+	mountedVolumesForPod := make(map[volumetypes.UniquePodName]map[string]cache.MountedVolume)
+	......
+	processedVolumesForFSResize := sets.NewString()
+
+	//获取所有的 pod 数据
+	for _, pod := range dswp.podManager.GetPods() {
+		//如果是终止的 pod，不用挂载卷
+		if dswp.isPodTerminated(pod) {
+			continue
+		}
+		//处理特定的 pod 的卷信息，把他们放到一个desired state的数据结构里去
+		dswp.processPodVolumes(pod, mountedVolumesForPod, processedVolumesForFSResize)
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;func (dswp *desiredStateOfWorldPopulator) processPodVolumes(
+	pod *v1.Pod,
+	mountedVolumesForPod map[volumetypes.UniquePodName]map[string]cache.MountedVolume,
+	processedVolumesForFSResize sets.String) {
+	if pod == nil {
+		return
+	}
+	//获取 pod 的UID
+	uniquePodName := util.GetUniquePodName(pod)
+	//在当前processedPods中缓存有这个 pod 的信息，就不处理了
+	if dswp.podPreviouslyProcessed(uniquePodName) {
+		return
+	}
+
+	allVolumesAdded := true
+	mounts, devices := util.GetPodVolumeNames(pod)
+
+	expandInUsePV := utilfeature.DefaultFeatureGate.Enabled(features.ExpandInUsePersistentVolumes)
+	// 从 Pod 的定义中拿到所有的待绑定的卷信息
+	for _, podVolume := range pod.Spec.Volumes {
+		if !mounts.Has(podVolume.Name) &amp;amp;&amp;amp; !devices.Has(podVolume.Name) {
+			continue
+		}
+
+	//创建卷信息, 后续再具体分析这个代码
+		pvc, volumeSpec, volumeGidValue, err :=
+			dswp.createVolumeSpec(podVolume, pod, mounts, devices)
+		if err != nil {
+			dswp.desiredStateOfWorld.AddErrorToPod(uniquePodName, err.Error())
+			allVolumesAdded = false
+			continue
+		}
+
+		// 把卷信息添加到数据结构中
+		_, err = dswp.desiredStateOfWorld.AddPodToVolume(
+			uniquePodName, pod, volumeSpec, podVolume.Name, volumeGidValue)
+		if err != nil {
+			dswp.desiredStateOfWorld.AddErrorToPod(uniquePodName, err.Error())
+			allVolumesAdded = false
+		} else {
+		}
+
+		if expandInUsePV {
+			dswp.checkVolumeFSResize(pod, podVolume, pvc, volumeSpec,
+				uniquePodName, mountedVolumesForPod, processedVolumesForFSResize)
+		}
+	}
+
+	//如果所有的卷都处理完毕了，标记处理完成
+	if allVolumesAdded {
+		dswp.markPodProcessed(uniquePodName)
+		// New pod has been synced. Re-mount all volumes that need it
+		// (e.g. DownwardAPI)
+		dswp.actualStateOfWorld.MarkRemountRequired(uniquePodName)
+		// Remove any stored errors for the pod, everything went well in this processPodVolumes
+		dswp.desiredStateOfWorld.PopPodErrors(uniquePodName)
+	} else if dswp.podHasBeenSeenOnce(uniquePodName) {
+		// For the Pod which has been processed at least once, even though some volumes
+		// may not have been reprocessed successfully this round, we still mark it as processed to avoid
+		// processing it at a very high frequency. The pod will be reprocessed when volume manager calls
+		// ReprocessPod() which is triggered by SyncPod.
+		dswp.markPodProcessed(uniquePodName)
+	}
+
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;做的主要的事情就是将节点加入的新 Pod 添加到&lt;code&gt;DesiredStateOfWorld&lt;/code&gt; 中。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;findAndRemoveDeletedPods&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;func (dswp *desiredStateOfWorldPopulator) findAndRemoveDeletedPods() {
+	var runningPods []*kubecontainer.Pod
+
+	runningPodsFetched := false
+	for _, volumeToMount := range dswp.desiredStateOfWorld.GetVolumesToMount() {
+		pod, podExists := dswp.podManager.GetPodByUID(volumeToMount.Pod.UID)
+		if podExists {
+			// Skip running pods
+			if !dswp.isPodTerminated(pod) {
+				continue
+			}
+			if dswp.keepTerminatedPodVolumes {
+				continue
+			}
+		}
+
+		// Once a pod has been deleted from kubelet pod manager, do not delete
+		// it immediately from volume manager. Instead, check the kubelet
+		// containerRuntime to verify that all containers in the pod have been
+		// terminated.
+		if !runningPodsFetched {
+			var getPodsErr error
+			runningPods, getPodsErr = dswp.kubeContainerRuntime.GetPods(false)
+			if getPodsErr != nil {
+				klog.Errorf(
+					&amp;quot;kubeContainerRuntime.findAndRemoveDeletedPods returned error %v.&amp;quot;,
+					getPodsErr)
+				continue
+			}
+
+			runningPodsFetched = true
+			dswp.timeOfLastGetPodStatus = time.Now()
+		}
+
+		runningContainers := false
+		for _, runningPod := range runningPods {
+			if runningPod.ID == volumeToMount.Pod.UID {
+				if len(runningPod.Containers) &amp;gt; 0 {
+					runningContainers = true
+				}
+
+				break
+			}
+		}
+
+		if runningContainers {
+			klog.V(4).Infof(
+				&amp;quot;Pod %q still has one or more containers in the non-exited state. Therefore, it will not be removed from desired state.&amp;quot;,
+				format.Pod(volumeToMount.Pod))
+			continue
+		}
+		exists, _, _ := dswp.actualStateOfWorld.PodExistsInVolume(volumeToMount.PodName, volumeToMount.VolumeName)
+		if !exists &amp;amp;&amp;amp; podExists {
+			klog.V(4).Infof(
+				volumeToMount.GenerateMsgDetailed(fmt.Sprintf(&amp;quot;Actual state has not yet has this volume mounted information and pod (%q) still exists in pod manager, skip removing volume from desired state&amp;quot;,
+					format.Pod(volumeToMount.Pod)), &amp;quot;&amp;quot;))
+			continue
+		}
+		klog.V(4).Infof(volumeToMount.GenerateMsgDetailed(&amp;quot;Removing volume from desired state&amp;quot;, &amp;quot;&amp;quot;))
+
+		dswp.desiredStateOfWorld.DeletePodFromVolume(
+			volumeToMount.PodName, volumeToMount.VolumeName)
+		dswp.deleteProcessedPod(volumeToMount.PodName)
+	}
+
+	podsWithError := dswp.desiredStateOfWorld.GetPodsWithErrors()
+	for _, podName := range podsWithError {
+		if _, podExists := dswp.podManager.GetPodByUID(types.UID(podName)); !podExists {
+			dswp.desiredStateOfWorld.PopPodErrors(podName)
+		}
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;总而言之，这俩的目的就是将当前节点的期望状态，同步到DesiredStateOfWorld中，等待有人处理这个数据结构。 类似于&lt;code&gt;生产者&lt;/code&gt;&lt;/p&gt;
+&lt;h1 id=&#34;3-reconciler&#34;&gt;3. Reconciler&lt;/h1&gt;
+&lt;p&gt;负责对当前节点上的 Volume 进行管理，启动一个&lt;code&gt;reconcile&lt;/code&gt;循环 ， 在方法中分三次对当前状态和期望转改不匹配的卷，进行卸载，挂载等操作。&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//kubelet/volumemanager/reconciler/reconciler.go
+
+func (rc *reconciler) reconciliationLoopFunc() func() {
+	return func() {
+		rc.reconcile()
+		if rc.populatorHasAddedPods() &amp;amp;&amp;amp; !rc.StatesHasBeenSynced() {
+			rc.sync()
+		}
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;其中 sync 方法，最终还是调用到了reconcile方法，具体来看代码&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//kubelet/volumemanager/reconciler/reconciler.go
+func (rc *reconciler) reconcile() {
+	//首先保证应该被卸载的，但是依然在节点中存在卷被卸载，比如删除了 Pod 这种情况
+	rc.unmountVolumes()
+	
+	// 将应该挂载的卷，挂载到合适的位置
+	rc.mountAttachVolumes()
+
+	//将***设备***与节点分离或者卸载， 这个设备比如是 CDROM等 device
+	rc.unmountDetachDevices()
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;unmountVolumes&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//kubelet/volumemanager/reconciler/reconciler.go
+func (rc *reconciler) unmountVolumes() {
+	//遍历当前节点中所有的挂载信息
+	for _, mountedVolume := range rc.actualStateOfWorld.GetAllMountedVolumes() {
+		if !rc.desiredStateOfWorld.PodExistsInVolume(mountedVolume.PodName, mountedVolume.VolumeName) {
+			//如果不在期望里面，说明是要被卸载的,执行卸载动作
+			err := rc.operationExecutor.UnmountVolume(
+				mountedVolume.MountedVolume, rc.actualStateOfWorld, rc.kubeletPodsDir)
+			if err != nil &amp;amp;&amp;amp;
+				!nestedpendingoperations.IsAlreadyExists(err) &amp;amp;&amp;amp;
+				!exponentialbackoff.IsExponentialBackoff(err) {
+				// Ignore nestedpendingoperations.IsAlreadyExists and exponentialbackoff.IsExponentialBackoff errors, they are expected.
+				// Log all other errors.
+				klog.Errorf(mountedVolume.GenerateErrorDetailed(fmt.Sprintf(&amp;quot;operationExecutor.UnmountVolume failed (controllerAttachDetachEnabled %v)&amp;quot;, rc.controllerAttachDetachEnabled), err).Error())
+			}
+			if err == nil {
+				klog.Infof(mountedVolume.GenerateMsgDetailed(&amp;quot;operationExecutor.UnmountVolume started&amp;quot;, &amp;quot;&amp;quot;))
+			}
+		}
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;mountAttachVolumes&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//kubelet/volumemanager/reconciler/reconciler.go
+func (rc *reconciler) mountAttachVolumes() {
+	//获取所有期望的卷挂载信息
+	for _, volumeToMount := range rc.desiredStateOfWorld.GetVolumesToMount() {
+		volMounted, devicePath, err := rc.actualStateOfWorld.PodExistsInVolume(volumeToMount.PodName, volumeToMount.VolumeName)
+		//这里得到的是，本机 Node 节点的实际目录，后续是将这个目录，挂载到 Pod 中。
+		**volumeToMount.DevicePath = devicePath**
+		if cache.IsVolumeNotAttachedError(err) {
+		// 如果实际中卷没法挂载，原因是并没有 attach，先把卷Attach 到本机 node 上
+			if rc.controllerAttachDetachEnabled || !volumeToMount.PluginIsAttachable {
+			.......
+			} else {
+			//处理 Volume 的 Attach，为什么需要 Attach，是因为某些类型的卷，必须挂载到
+			//本机的节点才可以被使用，比如 google 的 GCE，且只能Attach 到一台机器
+			//后面会具体介绍
+				volumeToAttach := operationexecutor.VolumeToAttach{
+					VolumeName: volumeToMount.VolumeName,
+					VolumeSpec: volumeToMount.VolumeSpec,
+					NodeName:   rc.nodeName,
+				}
+				klog.V(5).Infof(volumeToAttach.GenerateMsgDetailed(&amp;quot;Starting operationExecutor.AttachVolume&amp;quot;, &amp;quot;&amp;quot;))
+				err := rc.operationExecutor.AttachVolume(volumeToAttach, rc.actualStateOfWorld)
+				.......
+			}
+		} else if !volMounted || cache.IsRemountRequiredError(err) {
+			//需要重新挂载, 具体的挂载是在这里展开的
+			remountingLogStr := &amp;quot;&amp;quot;
+			isRemount := cache.IsRemountRequiredError(err)
+			err := rc.operationExecutor.MountVolume(
+				rc.waitForAttachTimeout,
+				volumeToMount.VolumeToMount,
+				rc.actualStateOfWorld,
+				isRemount)
+			.....
+		} else if cache.IsFSResizeRequiredError(err) &amp;amp;&amp;amp;
+			//纵向扩展卷信息，比如增加大小什么的
+			err := rc.operationExecutor.ExpandInUseVolume(
+				volumeToMount.VolumeToMount,
+				rc.actualStateOfWorld)
+				............
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;unmountDetachDeives&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//kubelet/volumemanager/reconciler/reconciler.go
+func (rc *reconciler) unmountDetachDevices() {
+//遍历当前节点实际已经Attach的卷，但是没有挂载到 POD上的
+	for _, attachedVolume := range rc.actualStateOfWorld.GetUnmountedVolumes() {
+		// 如果需要调谐
+		if !rc.desiredStateOfWorld.VolumeExists(attachedVolume.VolumeName) &amp;amp;&amp;amp;
+			!rc.operationExecutor.IsOperationPending(attachedVolume.VolumeName, nestedpendingoperations.EmptyUniquePodName, nestedpendingoperations.EmptyNodeName) {
+			//如果设备已经挂载了，卸载
+			if attachedVolume.DeviceMayBeMounted() {
+				// Volume is globally mounted to device, unmount it
+
+				err := rc.operationExecutor.UnmountDevice(
+					attachedVolume.AttachedVolume, rc.actualStateOfWorld, rc.hostutil)
+				 ......
+			} else {
+				// 卷已经Attach到节点上了，Detach它
+				if rc.controllerAttachDetachEnabled || !attachedVolume.PluginIsAttachable {
+					rc.actualStateOfWorld.MarkVolumeAsDetached(attachedVolume.VolumeName, attachedVolume.NodeName)
+				} else {
+					//detach
+					err := rc.operationExecutor.DetachVolume(
+						attachedVolume.AttachedVolume, false /* verifySafeToDetach */, rc.actualStateOfWorld)
+					......
+			}
+		}
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;本篇主要讨论挂载&lt;code&gt;Mount&lt;/code&gt; 的事情，重点来看 &lt;code&gt;MountVolume&lt;/code&gt;  是怎么进行的.  从上面代码来看，挂载的操作交由了 &lt;code&gt;operationExecutor&lt;/code&gt; 来执行的。&lt;/p&gt;
+&lt;h1 id=&#34;4-operationexecutor&#34;&gt;4. operationExecutor&lt;/h1&gt;
+&lt;p&gt;operationExecutor 是本reconciler的一个属性, 指向了OperationExecutor的一个接口，主要功能如下&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//volume/util/operationexecutor/operation_executor.go
+
+type OperationExecutor interface {
+	//附着卷
+	AttachVolume(volumeToAttach VolumeToAttach, actualStateOfWorld ActualStateOfWorldAttacherUpdater) error
+	VerifyVolumesAreAttachedPerNode(AttachedVolumes []AttachedVolume, nodeName types.NodeName, actualStateOfWorld ActualStateOfWorldAttacherUpdater) error
+	VerifyVolumesAreAttached(volumesToVerify map[types.NodeName][]AttachedVolume, actualStateOfWorld ActualStateOfWorldAttacherUpdater)
+	//解附着
+	DetachVolume(volumeToDetach AttachedVolume, verifySafeToDetach bool, actualStateOfWorld ActualStateOfWorldAttacherUpdater) error
+	//挂载卷
+	MountVolume(waitForAttachTimeout time.Duration, volumeToMount VolumeToMount, actualStateOfWorld ActualStateOfWorldMounterUpdater, isRemount bool) error
+	//解挂
+	UnmountVolume(volumeToUnmount MountedVolume, actualStateOfWorld ActualStateOfWorldMounterUpdater, podsDir string) error
+	//设备解挂
+	UnmountDevice(deviceToDetach AttachedVolume, actualStateOfWorld ActualStateOfWorldMounterUpdater, hostutil hostutil.HostUtils) error
+	VerifyControllerAttachedVolume(volumeToMount VolumeToMount, nodeName types.NodeName, actualStateOfWorld ActualStateOfWorldAttacherUpdater) error
+	IsOperationPending(volumeName v1.UniqueVolumeName, podName volumetypes.UniquePodName, nodeName types.NodeName) bool
+	ExpandInUseVolume(volumeToMount VolumeToMount, actualStateOfWorld ActualStateOfWorldMounterUpdater) error
+	ReconstructVolumeOperation(volumeMode v1.PersistentVolumeMode, plugin volume.VolumePlugin, mapperPlugin volume.BlockVolumePlugin, uid types.UID, podName volumetypes.UniquePodName, volumeSpecName string, volumePath string, pluginName string) (*volume.Spec, error)
+	CheckVolumeExistenceOperation(volumeSpec *volume.Spec, mountPath, volumeName string, mounter mount.Interface, uniqueVolumeName v1.UniqueVolumeName, podName volumetypes.UniquePodName, podUID types.UID, attachable volume.AttachableVolumePlugin) (bool, error)
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;具体来看MountVolume是如何实现的&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//volume/util/operationexecutor/operation_executor.go
+func (oe *operationExecutor) MountVolume(
+	waitForAttachTimeout time.Duration,
+	volumeToMount VolumeToMount,
+	actualStateOfWorld ActualStateOfWorldMounterUpdater,
+	isRemount bool) error {
+	//获取当前卷是什么类型的卷
+	fsVolume, err := util.CheckVolumeModeFilesystem(volumeToMount.VolumeSpec)
+	if err != nil {
+		return err
+	}
+	var generatedOperations volumetypes.GeneratedOperations
+	if fsVolume {
+		//如果是文件系统，那么返回一个文件系统用的函数
+		generatedOperations = oe.operationGenerator.GenerateMountVolumeFunc(
+			waitForAttachTimeout, volumeToMount, actualStateOfWorld, isRemount)
+
+	} else {
+		//如果是块设备，返回块设备的挂载函数 
+		generatedOperations, err = oe.operationGenerator.GenerateMapVolumeFunc(
+			waitForAttachTimeout, volumeToMount, actualStateOfWorld)
+	}
+	if err != nil {
+		return err
+	}
+	podName := nestedpendingoperations.EmptyUniquePodName
+	//开始挂载，最终执行，是用上面返回的两个函数来进行的
+	return oe.pendingOperations.Run(
+		volumeToMount.VolumeName, podName, &amp;quot;&amp;quot; /* nodeName */, generatedOperations)
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;文件系统和块设备有什么不同？ 文件系统是 linux 在块设备之上封装了一层通用的接口，可能会涉及到文件缓存之类的，块设备更靠近于底层，比如数据库这样的软件，可以直接通过操作块设备来进行存储，绕过操作系统的缓存。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;GenerateMountVolumeFunc 用来处理挂载文件系统的&lt;/li&gt;
+&lt;li&gt;GenerateMapVolumeFunc  用来处理块设备的，把 device 映射一下&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;来看MountVolume的 Func&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//volume/util/operationexecutor/operation_generator.go
+func (og *operationGenerator) GenerateMountVolumeFunc(
+	waitForAttachTimeout time.Duration,
+	volumeToMount VolumeToMount,
+	actualStateOfWorld ActualStateOfWorldMounterUpdater,
+	isRemount bool) volumetypes.GeneratedOperations {
+
+	//从当前的插件体系中，获取到这个卷对应的插件实现
+	volumePluginName := unknownVolumePlugin
+	volumePlugin, err :=
+		og.volumePluginMgr.FindPluginBySpec(volumeToMount.VolumeSpec)
+
+	mountVolumeFunc := func() (error, error) {
+		//获取插件实现
+		volumePlugin, err := og.volumePluginMgr.FindPluginBySpec(volumeToMount.VolumeSpec)
+		//检查亲缘性
+		affinityErr := checkNodeAffinity(og, volumeToMount)
+		......
+		//生成一个 Mounter，这里是插件的通用接口
+		volumeMounter, newMounterErr := volumePlugin.NewMounter(
+			volumeToMount.VolumeSpec,
+			volumeToMount.Pod,
+			volume.VolumeOptions{})
+		//如果有Attacher，先执行 attacher
+			attachableVolumePlugin, _ :=
+			og.volumePluginMgr.FindAttachablePluginBySpec(volumeToMount.VolumeSpec)
+		var volumeAttacher volume.Attacher
+		if attachableVolumePlugin != nil {
+			volumeAttacher, _ = attachableVolumePlugin.NewAttacher()
+		}
+
+		// 如果有设备挂载，处理设备挂载
+		deviceMountableVolumePlugin, _ := og.volumePluginMgr.FindDeviceMountablePluginBySpec(volumeToMount.VolumeSpec)
+		var volumeDeviceMounter volume.DeviceMounter
+		if deviceMountableVolumePlugin != nil {
+			volumeDeviceMounter, _ = deviceMountableVolumePlugin.NewDeviceMounter()
+		}
+		//权限之类的
+		var fsGroup *int64
+		var fsGroupChangePolicy *v1.PodFSGroupChangePolicy
+		if podSc := volumeToMount.Pod.Spec.SecurityContext; podSc != nil {
+			if podSc.FSGroup != nil {
+				fsGroup = podSc.FSGroup
+			}
+			if podSc.FSGroupChangePolicy != nil {
+				fsGroupChangePolicy = podSc.FSGroupChangePolicy
+			}
+		}
+		//这就是本机的待挂载的路径
+		devicePath := volumeToMount.DevicePath
+		if volumeAttacher != nil {
+			//如果需要 Attach 到本机的卷，那么实际 mount 的路径是 attach 之后的路径
+			devicePath, err = volumeAttacher.WaitForAttach(
+				volumeToMount.VolumeSpec, devicePath, volumeToMount.Pod, waitForAttachTimeout)
+			.......
+		}
+		if volumeDeviceMounter != nil {
+			//获取设备挂载路径，
+			deviceMountPath, err :=
+				volumeDeviceMounter.GetDeviceMountPath(volumeToMount.VolumeSpec)
+			// 挂载设备
+			err = volumeDeviceMounter.MountDevice(
+				volumeToMount.VolumeSpec,
+				devicePath,
+				deviceMountPath)
+			//更新实际挂载状态
+			markDeviceMountedErr := actualStateOfWorld.MarkDeviceAsMounted(
+				volumeToMount.VolumeName, devicePath, deviceMountPath)
+			if markDeviceMountedErr != nil {
+				// On failure, return error. Caller will log and retry.
+				return volumeToMount.GenerateError(&amp;quot;MountVolume.MarkDeviceAsMounted failed&amp;quot;, markDeviceMountedErr)
+			}
+
+			......
+		}
+
+		if og.checkNodeCapabilitiesBeforeMount {
+			if canMountErr := volumeMounter.CanMount(); canMountErr != nil {
+				err = fmt.Errorf(
+					&amp;quot;Verify that your node machine has the required components before attempting to mount this volume type. %s&amp;quot;,
+					canMountErr)
+				return volumeToMount.GenerateError(&amp;quot;MountVolume.CanMount failed&amp;quot;, err)
+			}
+		}
+
+		// 执行挂载操作
+		mountErr := volumeMounter.SetUp(volume.MounterArgs{
+			FsUser:              ioutil.FsUserFrom(volumeToMount.Pod),
+			FsGroup:             fsGroup,
+			DesiredSize:         volumeToMount.DesiredSizeLimit,
+			FSGroupChangePolicy: fsGroupChangePolicy,
+		})
+		......
+		//后续一堆处理，修正实际的挂载状态
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h1 id=&#34;5-plugins&#34;&gt;5. plugins&lt;/h1&gt;
+&lt;p&gt;从上述代码来看，挂载的操作，是交给了插件去真正执行的，插件的接口描述如下&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//volume/volume.go
+
+type Volume interface {
+	//准备把卷挂载到 Pod 的哪个路径
+	GetPath() string
+	MetricsProvider
+}
+//插件接口
+type Mounter interface {
+	// Uses Interface to provide the path for Docker binds.
+	Volume
+	//是否可以挂载, 主要用于校验一下
+	CanMount() error
+	//执行挂载操作
+	SetUp(mounterArgs MounterArgs) error
+	//执行挂载操作，不同的是，可以指定一个目录去挂载
+	SetUpAt(dir string, mounterArgs MounterArgs) error
+	//获取这个 mounter 插件的一堆属性，必须在挂载之后才能调用
+	GetAttributes() Attributes
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;kubernetes提供了许多内置的插件，比如本地文件，nfs，云存储提供商等等。 找个最简单的插件来看下怎么实现的吧。 这里选 local 这个挂载器，把本机文件挂载到 pod 中去。&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//volume/local/local.go
+
+// SetUp bind mounts the directory to the volume path
+func (m *localVolumeMounter) SetUp(mounterArgs volume.MounterArgs) error {
+	return m.SetUpAt(m.GetPath(), mounterArgs)
+}
+
+//获取要挂载的本地目录
+func (l *localVolume) GetPath() string {
+	return l.plugin.host.GetPodVolumeDir(l.podUID, utilstrings.EscapeQualifiedName(localVolumePluginName), l.volName)
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;首先获取本机要挂载到Pod 里的路径，最终一顿猛如虎的操作之后，得到的最终路径为&lt;/p&gt;
+&lt;p&gt;/var/lib/kubelet/pods/pod的 UID/volumes/插件名/卷名&lt;/p&gt;
+&lt;p&gt;当前 local 的卷名就是：kubernetes.io/local-volume, 具体来看是如何挂载的&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//volume/local/local.go
+func (m *localVolumeMounter) SetUpAt(dir string, mounterArgs volume.MounterArgs) error {
+	m.plugin.volumeLocks.LockKey(m.globalPath)
+	defer m.plugin.volumeLocks.UnlockKey(m.globalPath)
+	......
+	//如果没有挂载点，返回
+	notMnt, err := mount.IsNotMountPoint(m.mounter, dir)
+	......
+	//设置挂载参数，这里指定的是 bind 技术
+	options := []string{&amp;quot;bind&amp;quot;}
+	if m.readOnly {
+		options = append(options, &amp;quot;ro&amp;quot;)
+	}
+	mountOptions := util.JoinMountOptions(options, m.mountOptions)
+
+	//获取本机的绝对路径
+	globalPath := util.MakeAbsolutePath(runtime.GOOS, m.globalPath)
+	//执行挂载
+	err = m.mounter.Mount(globalPath, dir, &amp;quot;&amp;quot;, mountOptions)
+	......
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;最终交由了&lt;code&gt;mount_linux.go&lt;/code&gt;来进行 &lt;code&gt;Mount&lt;/code&gt;操作 .&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//vendor/k8s.io/utils/mount/mount_linux.go
+
+func (mounter *Mounter) MountSensitive(source string, target string, fstype string, options []string, sensitiveOptions []string) error {
+	// Path to mounter binary if containerized mounter is needed. Otherwise, it is set to empty.
+	// All Linux distros are expected to be shipped with a mount utility that a support bind mounts.
+	mounterPath := &amp;quot;&amp;quot;
+	bind, bindOpts, bindRemountOpts, bindRemountOptsSensitive := MakeBindOptsSensitive(options, sensitiveOptions)
+	//如果采用了 bind 技术
+	if bind {
+	//直接执行了exe.Command执行 mount --bind 
+		err := mounter.doMount(mounterPath, defaultMountCommand, source, target, fstype, bindOpts, bindRemountOptsSensitive)
+		if err != nil {
+			return err
+		}
+		return mounter.doMount(mounterPath, defaultMountCommand, source, target, fstype, bindRemountOpts, bindRemountOptsSensitive)
+	}
+	// The list of filesystems that require containerized mounter on GCI image cluster
+	fsTypesNeedMounter := map[string]struct{}{
+		&amp;quot;nfs&amp;quot;:       {},
+		&amp;quot;glusterfs&amp;quot;: {},
+		&amp;quot;ceph&amp;quot;:      {},
+		&amp;quot;cifs&amp;quot;:      {},
+	}
+	if _, ok := fsTypesNeedMounter[fstype]; ok {
+		mounterPath = mounter.mounterPath
+	}
+	return mounter.doMount(mounterPath, defaultMountCommand, source, target, fstype, options, sensitiveOptions)
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//vendor/k8s.io/utils/mount/mount_linux.go
+func (mounter *Mounter) doMount(mounterPath string, mountCmd string, source string, target string, fstype string, options []string, sensitiveOptions []string) error {
+	mountArgs, mountArgsLogStr := MakeMountArgsSensitive(source, target, fstype, options, sensitiveOptions)
+	if len(mounterPath) &amp;gt; 0 {
+		mountArgs = append([]string{mountCmd}, mountArgs...)
+		mountArgsLogStr = mountCmd + &amp;quot; &amp;quot; + mountArgsLogStr
+		mountCmd = mounterPath
+	}
+
+	if mounter.withSystemd {
+		mountCmd, mountArgs, mountArgsLogStr = AddSystemdScopeSensitive(&amp;quot;systemd-run&amp;quot;, target, mountCmd, mountArgs, mountArgsLogStr)
+	} else {
+	}
+	command:= exec.Command(mountCmd, mountArgs...)
+	output, err := command.CombinedOutput()
+	if err != nil {
+		klog.Errorf(&amp;quot;Mount failed: %v\nMounting command: %s\nMounting arguments: %s\nOutput: %s\n&amp;quot;, err, mountCmd, mountArgsLogStr, string(output))
+		return fmt.Errorf(&amp;quot;mount failed: %v\nMounting command: %s\nMounting arguments: %s\nOutput: %s&amp;quot;,
+			err, mountCmd, mountArgsLogStr, string(output))
+	}
+	return err
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;最终执行的命令是： &lt;code&gt;mount —bind 源 目的&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;当然了，除了本地 local 插件之外，k8s还内置了需要插件，比如EmptyDir, ConfigMap,Secret，NFS 等等。实现方式大同小异.&lt;/p&gt;
+&lt;h1 id=&#34;6-总结&#34;&gt;6. 总结&lt;/h1&gt;
+&lt;p&gt;k8s在卷管理方面大致需要以下几个组件&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Volume Manager&lt;/p&gt;
+&lt;p&gt;是卷管理的驱动入口，负责调谐 pod 和 volume，把pod 的预期卷信息，转化为实际的卷挂载。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Volume plugins&lt;/p&gt;
+&lt;p&gt;一个插件体系，提供了扩展接口，包含了各类存储提供者的plugins实现&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;pv/pvc Controller&lt;/p&gt;
+&lt;p&gt;运行在 Master 上的组件，主要做provision/delete, 其他文章再介绍&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Attach/Detach Controller&lt;/p&gt;
+&lt;p&gt;运行在 master 上，主要做一些块设备的Attach和Detach， 比如一些设备GCE 等，必须先Attach到本机节点，之后才能被使用&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;卷挂载的主要流程大概是这样的&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;用户创建 Pod，提供一个 PVC 信息&lt;/li&gt;
+&lt;li&gt;Pod 被分配到节点 NodeA&lt;/li&gt;
+&lt;li&gt;kubelet等待 Volume Manager 挂载完成 (还有其他的一堆等待，比如网络)&lt;/li&gt;
+&lt;li&gt;PV Controller 创建持久化卷并在系统中创建 PV 对象，以及绑定 PVC&lt;/li&gt;
+&lt;li&gt;Attach/Detach Controller 通过插件实现块设备的挂载
+&lt;ul&gt;
+&lt;li&gt;Volume Manager 将本机 node 节点的目录，挂载到 Pod中。执行的是mount命令。&lt;/li&gt;
+&lt;li&gt;kubelet 在启动容器的时候， 通过 CRI 接口，将参数传递给 CRI 的实现者，比如 docker，docker 执行docker -v 把 Pod 的卷信息，再次通过 bind mount 技术，映射到容器中去&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;1&#34;&gt;&lt;img src=&#34;http://kzltime.cn/post-images/1611475388513.png&#34; alt=&#34;&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;ul&gt;
+&lt;li&gt;Pod绑定 Volume 是把本地目录挂载到 Pod 中，并没有给容器&lt;/li&gt;
+&lt;li&gt;容器绑定卷，是在启动容器StartContainer的时候，把 Pod 的卷信息 bind 给容器的&lt;/li&gt;
+&lt;/ul&gt;
+">Kubernetes学习笔记 - Volume Manager</a>
+      </div>
+      
+      <div class="item">
+        <a class="result-title" style="opacity: 0;" href="http://kzltime.cn/post/about/"" data-c="
+          &lt;p&gt;✍️这仅仅就是一个学习笔记&lt;/p&gt;
+&lt;p&gt;🏃‍♀🏃‍♀🏃‍♀🏃‍♀🏃‍♀&lt;/p&gt;
+">关于</a>
+      </div>
+      
+    </div>
+    <div class="page">
+      <div id="page_ul"></div>
+    </div>
+  </div>
+</div>
+<script>
+  !function () {
+    let searchMask = document.querySelector('#search_mask');
+    let result = document.querySelector('#result');
+    let items = document.querySelectorAll('.item');
+    let searchBox = document.querySelector('#search');
+    let statCount = document.querySelector('#stat_count');
+    let statTimes = document.querySelector('#stat_times');
+    let pageUl = document.querySelector('#page_ul');
+    let close = document.querySelector('#close');
+    
+    close.addEventListener('click', function() {
+      searchMask.style = 'display: none;'
+    })
+
+    let finds = [];
+    let contents = [];
+    let pageSize = 10;
+    items.forEach(item => {
+      let a = item.querySelector('a');
+      contents.push({
+        title: a.innerText,
+        details: a.dataset.c,
+        link: a.href
+      })
+      item.remove();
+    })
+
+    function insertStr(soure, start, count) {
+      let newStr = soure.substr(start, count);
+      return soure.slice(0, start) + '<em>' + newStr + '</em>' + soure.slice(start + count);
+    }
+
+    pageUl.addEventListener('click', function(event) {
+      let target = event.target;
+      if (target.__proto__ === HTMLSpanElement.prototype) {
+        appendResults(parseInt(target.dataset.i));
+      }
+    })
+
+    function appendResults(index) {
+      let htmlResult = '';
+      let start = index || 0;
+      let end = Math.min(start + pageSize, finds.length);
+      for (let i = start; i < end; i++) {
+        const current = finds[i];
+        let html = current.title;
+        let sum = 0;
+        let positions = current.positions;
+        positions.forEach(position => {
+          html = insertStr(html, position.start + sum, position.count);
+          sum += 9;
+        })
+        htmlResult += `<div class="item"><a class="result-title" href="${current.link}">${html}</a></div>`;
+      }
+      result.innerHTML = htmlResult;
+      pageUl.innerHTML = '';
+      let count = finds.length / pageSize;
+      let lis = '';
+      if (start !== 0) {
+        lis += `<span class="fa fa-angle-left" data-i='${start - 1}'></span>`;
+      }
+      for (let i = 0; i < count; i++) {
+        lis += `<span class='${i === start?'current':''}' data-i='${i}'>${i+1}</span>`;     
+      }
+      if (start+1 < count) {
+        lis += `<span class="fa fa-angle-right" data-i='${start+1}'></span>`;  
+      }
+      pageUl.innerHTML = lis;
+    }
+
+    function search(delay) {
+      let timer = null
+      return function () {
+        clearTimeout(timer)
+        timer = setTimeout(() => {
+          let start = Date.now();
+          let segments = searchBox.value.split(' ').filter(c => c != '');
+          if (segments.length <= 0) {
+            return;
+          }
+          finds = [];
+          let htmlResult = '';
+          contents.forEach(content => {
+            let title = content.title;
+            let positions = [];
+            let find = false;
+            segments.forEach((segment) => {
+              if (content.title.includes(segment)) {
+                find = true;
+                positions.push({
+                  start: content.title.indexOf(segment),
+                  count: segment.length
+                })
+              } else if (content.details.includes(segment)) {
+                find = true;
+              }
+            });
+            if (find) {
+              finds.push({
+                title: content.title,
+                link: content.link,
+                positions
+              });
+            }
+          })
+          appendResults(0);
+          statCount.textContent = finds.length;
+          statTimes.textContent = Date.now() - start;
+        }, delay)
+      }
+    }
+    searchBox.addEventListener('input', search(200));
+  }()
+</script>
+
+<input hidden id="copy" />
+<script>
+  !function () {
+    let times = document.querySelectorAll('.publish-time');
+    for (let i = 0; i < times.length; i++) {
+      let date = times[i].dataset.t;
+      let time = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
+      if (time < 60) {
+        str = time + '秒之前';
+      } else if (time < 3600) {
+        str = Math.floor(time / 60) + '分钟之前';
+      } else if (time >= 3600 && time < 86400) {
+        str = Math.floor(time / 3600) + '小时之前';
+      } else if (time >= 86400 && time < 259200) {
+        str = Math.floor(time / 86400) + '天之前';
+      } else {
+        str = times[i].textContent;
+      }
+      times[i].textContent = str;
+    }
+  }();
+</script>
+
+<script>
+  let language = '';
+  if (language !== '') {
+    let map = new Map();
+    if (language === 'en') {
+      map.set('search', 'Search');
+      map.set('category', 'Categories');
+      map.set('article', 'Articles');
+      map.set('tag', 'Tags');
+      map.set('top', 'Top');
+      map.set('publish', 'published');
+      map.set('minute', ' minutes');
+      map.set('read-more', 'Read More');
+      map.set('view', 'View');
+      map.set('words', ' words');
+      map.set('category-in', 'category in');
+      map.set('preview', 'Meta');
+      map.set('index', 'Toc');
+      map.set('no-archives', "You haven't created yet");
+      map.set('archives', " articles in total");
+      map.set('cloud-tags', " tags in total");
+      map.set('copyright', "Copyright: ");
+      map.set('author', "Author: ");
+      map.set('link', "Link: ");
+      map.set('leave-message', "Leave a message");
+      map.set('format', "Links Format");
+      map.set('site-name', "Name: ");
+      map.set('site-link', "Link: ");
+      map.set('site-desc', "Desc: ");
+      map.set('stat', " related results, taking ");
+      map.set('stat-time', " ms");
+      map.set('site-img', "Image: ");
+    }
+
+    if (map.size > 0) {
+      let lanElems = document.querySelectorAll('.language');
+      lanElems.forEach(elem => {
+        let lan = elem.dataset.lan, text = map.get(lan);
+        if (elem.__proto__ === HTMLInputElement.prototype) {
+          elem.placeholder = text
+        } else {
+          if (elem.dataset.count) {
+            text = elem.dataset.count + text;
+          }
+          elem.textContent = text;
+        }
+      })
+    }
+  }
+  //拿来主义(真香)^_^，Clipboard 实现摘自掘金 https://juejin.im/post/5aefeb6e6fb9a07aa43c20af
+  window.Clipboard = (function (window, document, navigator) {
+    var textArea,
+      copy;
+
+    // 判断是不是ios端
+    function isOS() {
+      return navigator.userAgent.match(/ipad|iphone/i);
+    }
+    //创建文本元素
+    function createTextArea(text) {
+      textArea = document.createElement('textArea');
+      textArea.value = text;
+      textArea.style.width = 0;
+      textArea.style.height = 0;
+      textArea.clientHeight = 0;
+      textArea.clientWidth = 0;
+      document.body.appendChild(textArea);
+    }
+    //选择内容
+    function selectText() {
+      var range,
+        selection;
+
+      if (isOS()) {
+        range = document.createRange();
+        range.selectNodeContents(textArea);
+        selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        textArea.setSelectionRange(0, 999999);
+      } else {
+        textArea.select();
+      }
+    }
+
+    //复制到剪贴板
+    function copyToClipboard() {
+      try {
+        document.execCommand("Copy")
+      } catch (err) {
+        alert("复制错误！请手动复制！")
+      }
+      document.body.removeChild(textArea);
+    }
+
+    copy = function (text) {
+      createTextArea(text);
+      selectText();
+      copyToClipboard();
+    };
+
+    return {
+      copy: copy
+    };
+  })(window, document, navigator);
+
+  function copyCode(e) {
+    if (e.srcElement.tagName === 'SPAN' && e.srcElement.classList.contains('copy-code')) {
+      let code = e.currentTarget.querySelector('code');
+      var text = code.innerText;
+      if (e.srcElement.textContent === '复制成功') {
+        return;
+      }
+      e.srcElement.textContent = '复制成功';
+      (function (elem) {
+        setTimeout(() => {
+          if (elem.textContent === '复制成功') {
+            elem.textContent = '复制代码'
+          }
+        }, 1000);
+      })(e.srcElement)
+      Clipboard.copy(text);
+    }
+  }
+
+  let pres = document.querySelectorAll('pre');
+  pres.forEach(pre => {
+    let code = pre.querySelector('code');
+    let copyElem = document.createElement('span');
+    copyElem.classList.add('copy-code');
+    copyElem.textContent = '复制代码';
+    pre.appendChild(copyElem);
+    pre.onclick = copyCode
+  })
+
+</script>
+<script src="/media/js/motion.js"></script>
+
+
+<script src="https://cdn.jsdelivr.net/gh/cferdinandi/smooth-scroll/dist/smooth-scroll.polyfills.min.js"></script>
+<script>
+  var scroll = new SmoothScroll('a[href*="#"]', {
+    speed: 200
+  });
+</script>
+
+
+
+
+
 </html>
