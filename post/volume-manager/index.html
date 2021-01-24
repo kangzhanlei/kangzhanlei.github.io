@@ -1,0 +1,970 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+<meta name="description" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>Kubernetes学习笔记 - Volume Manager | Kzl Time </title>
+
+<link rel="shortcut icon" href="http://kzltime.cn/favicon.ico?v=1611475431741">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="http://kzltime.cn/styles/main.css">
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"> -->
+
+<style>
+    hr {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        border: 0;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dart.min.js"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script> -->
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <style>
+    /* 导航栏样式 */
+    .navbar {
+        position: relative;
+        display: -ms-flexbox;
+        display: flex;
+        -ms-flex-wrap: wrap;
+        flex-wrap: wrap;
+        -ms-flex-align: center;
+        align-items: center;
+        -ms-flex-pack: justify;
+        justify-content: space-between;
+        padding: 0.5rem 1rem;
+    }
+
+    .navbar-brand {
+        display: inline-block;
+        padding-top: 0.3125rem;
+        padding-bottom: 0.3125rem;
+        margin-right: 1rem;
+        font-size: 1.25rem;
+        line-height: inherit;
+        white-space: nowrap;
+    }
+
+    .navbar-brand:hover,
+    .navbar-brand:focus {
+        text-decoration: none;
+    }
+
+    .navbar-nav {
+        display: -ms-flexbox;
+        display: flex;
+        -ms-flex-direction: column;
+        flex-direction: column;
+        padding-left: 0;
+        margin-bottom: 0;
+        list-style: none;
+    }
+
+    .navbar-collapse {
+        -ms-flex-preferred-size: 100%;
+        flex-basis: 100%;
+        -ms-flex-positive: 1;
+        flex-grow: 1;
+        -ms-flex-align: center;
+        align-items: center;
+    }
+
+    .navbar-toggler {
+        padding: 0.25rem 0.75rem;
+        font-size: 1.25rem;
+        line-height: 1;
+        background-color: transparent;
+        border: 1px solid transparent;
+        border-radius: 0.25rem;
+    }
+
+    .navbar-toggler:hover,
+    .navbar-toggler:focus {
+        text-decoration: none;
+    }
+
+    @media (min-width: 992px) {
+        .navbar-expand-lg {
+            -ms-flex-flow: row nowrap;
+            flex-flow: row nowrap;
+            -ms-flex-pack: start;
+            justify-content: flex-start;
+        }
+
+        .navbar-expand-lg .navbar-nav {
+            -ms-flex-direction: row;
+            flex-direction: row;
+        }
+
+        .navbar-expand-lg .navbar-collapse {
+            display: -ms-flexbox !important;
+            display: flex !important;
+            -ms-flex-preferred-size: auto;
+            flex-basis: auto;
+        }
+
+        .navbar-expand-lg .navbar-toggler {
+            display: none;
+        }
+    }
+
+    @media (max-width: 991px) {
+        #navbarSupportedContent {
+            display: none;
+        }
+    }
+</style>
+<nav class="navbar navbar-expand-lg">
+    <div class="navbar-brand">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            Kzl Time 
+        </div>
+    </div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+            <div class="nav-item">
+                
+                <a href="/" class="menu gt-a-link">
+                    首页
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/archives" class="menu gt-a-link">
+                    归档
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/tags" class="menu gt-a-link">
+                    标签
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/post/about" class="menu gt-a-link">
+                    关于
+                </a>
+                
+            </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1611475431741"
+                action="/search/index.html">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+<script>
+    /* 移动端导航栏展开/收起切换 */
+    document.getElementById('changeNavbar').onclick = function () {
+        var element = document.getElementById('navbarSupportedContent');
+        if (element.style.display === 'none' || element.style.display === '') {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+</script>
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    Kubernetes学习笔记 - Volume Manager
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2021-01-24 ·
+                    </time>
+                    
+                </div>
+                <div class="post-content">
+                    <blockquote>
+<p>所有的相关代码，都基于kubernetes v19.3</p>
+</blockquote>
+<h1 id="1-运行原理">1. 运行原理</h1>
+<p>kubelet启动时会调用<code>volumeMananger</code>的 <code>Run</code> 方法启动卷管理器。 它负责在当前节点的 Pod 和 Volume 发生变化的时候，对 Volume 进行挂载和卸载等操作。</p>
+<pre><code class="language-go">func (vm *volumeManager) Run(sourcesReady config.SourcesReady, stopCh &lt;-chan struct{}) {
+	defer runtime.HandleCrash()
+	go vm.desiredStateOfWorldPopulator.Run(sourcesReady, stopCh)
+	go vm.reconciler.Run(stopCh)
+	metrics.Register(vm.actualStateOfWorld, vm.desiredStateOfWorld, vm.volumePluginMgr)
+	if vm.kubeClient != nil {
+		vm.volumePluginMgr.Run(stopCh)
+	}
+	&lt;-stopCh
+	klog.Infof(&quot;Shutting down Kubelet Volume Manager&quot;)
+}
+</code></pre>
+<p>主要做两件事情</p>
+<ul>
+<li>desiredStateOfWorldPopulator主要负责从 API server 中获取 Pod 的信息，将他们更新到本地的一个<code>DesiredStateOfWorld</code>的数据结构中。</li>
+<li>reconciler 负责调谐，也就是根据<code>DesiredStateOfWorld</code> 的状态变更，更新实际的挂载信息。</li>
+</ul>
+<p>在 Pod 的启动过程中，如果需要挂载卷，则首先等待卷挂载完成之后，才可以继续向下进行。</p>
+<h1 id="2-desiredstateofworld">2. DesiredStateOfWorld</h1>
+<p>执行一个大循环， 做的事情大致也有两个</p>
+<ul>
+<li>findAndAddNewPods</li>
+<li>findAndRemoveDeletedPods</li>
+</ul>
+<p>通过以上两个方法，分别获取节点中被添加的新 Pod 或者已经删除的老的 Pod，获取到 Pod 之后会根据当前的状态修改期望状态</p>
+<ul>
+<li>
+<p>findAndAddNewPods</p>
+<pre><code class="language-go">//kubelet/volumemanager/populator/desired_state_of_world_populator.go
+
+func (dswp *desiredStateOfWorldPopulator) findAndAddNewPods() {
+	// Map unique pod name to outer volume name to MountedVolume.
+	mountedVolumesForPod := make(map[volumetypes.UniquePodName]map[string]cache.MountedVolume)
+	......
+	processedVolumesForFSResize := sets.NewString()
+
+	//获取所有的 pod 数据
+	for _, pod := range dswp.podManager.GetPods() {
+		//如果是终止的 pod，不用挂载卷
+		if dswp.isPodTerminated(pod) {
+			continue
+		}
+		//处理特定的 pod 的卷信息，把他们放到一个desired state的数据结构里去
+		dswp.processPodVolumes(pod, mountedVolumesForPod, processedVolumesForFSResize)
+	}
+}
+</code></pre>
+<pre><code class="language-go">func (dswp *desiredStateOfWorldPopulator) processPodVolumes(
+	pod *v1.Pod,
+	mountedVolumesForPod map[volumetypes.UniquePodName]map[string]cache.MountedVolume,
+	processedVolumesForFSResize sets.String) {
+	if pod == nil {
+		return
+	}
+	//获取 pod 的UID
+	uniquePodName := util.GetUniquePodName(pod)
+	//在当前processedPods中缓存有这个 pod 的信息，就不处理了
+	if dswp.podPreviouslyProcessed(uniquePodName) {
+		return
+	}
+
+	allVolumesAdded := true
+	mounts, devices := util.GetPodVolumeNames(pod)
+
+	expandInUsePV := utilfeature.DefaultFeatureGate.Enabled(features.ExpandInUsePersistentVolumes)
+	// 从 Pod 的定义中拿到所有的待绑定的卷信息
+	for _, podVolume := range pod.Spec.Volumes {
+		if !mounts.Has(podVolume.Name) &amp;&amp; !devices.Has(podVolume.Name) {
+			continue
+		}
+
+	//创建卷信息, 后续再具体分析这个代码
+		pvc, volumeSpec, volumeGidValue, err :=
+			dswp.createVolumeSpec(podVolume, pod, mounts, devices)
+		if err != nil {
+			dswp.desiredStateOfWorld.AddErrorToPod(uniquePodName, err.Error())
+			allVolumesAdded = false
+			continue
+		}
+
+		// 把卷信息添加到数据结构中
+		_, err = dswp.desiredStateOfWorld.AddPodToVolume(
+			uniquePodName, pod, volumeSpec, podVolume.Name, volumeGidValue)
+		if err != nil {
+			dswp.desiredStateOfWorld.AddErrorToPod(uniquePodName, err.Error())
+			allVolumesAdded = false
+		} else {
+		}
+
+		if expandInUsePV {
+			dswp.checkVolumeFSResize(pod, podVolume, pvc, volumeSpec,
+				uniquePodName, mountedVolumesForPod, processedVolumesForFSResize)
+		}
+	}
+
+	//如果所有的卷都处理完毕了，标记处理完成
+	if allVolumesAdded {
+		dswp.markPodProcessed(uniquePodName)
+		// New pod has been synced. Re-mount all volumes that need it
+		// (e.g. DownwardAPI)
+		dswp.actualStateOfWorld.MarkRemountRequired(uniquePodName)
+		// Remove any stored errors for the pod, everything went well in this processPodVolumes
+		dswp.desiredStateOfWorld.PopPodErrors(uniquePodName)
+	} else if dswp.podHasBeenSeenOnce(uniquePodName) {
+		// For the Pod which has been processed at least once, even though some volumes
+		// may not have been reprocessed successfully this round, we still mark it as processed to avoid
+		// processing it at a very high frequency. The pod will be reprocessed when volume manager calls
+		// ReprocessPod() which is triggered by SyncPod.
+		dswp.markPodProcessed(uniquePodName)
+	}
+
+}
+</code></pre>
+<p>做的主要的事情就是将节点加入的新 Pod 添加到<code>DesiredStateOfWorld</code> 中。</p>
+</li>
+<li>
+<p>findAndRemoveDeletedPods</p>
+<pre><code class="language-go">func (dswp *desiredStateOfWorldPopulator) findAndRemoveDeletedPods() {
+	var runningPods []*kubecontainer.Pod
+
+	runningPodsFetched := false
+	for _, volumeToMount := range dswp.desiredStateOfWorld.GetVolumesToMount() {
+		pod, podExists := dswp.podManager.GetPodByUID(volumeToMount.Pod.UID)
+		if podExists {
+			// Skip running pods
+			if !dswp.isPodTerminated(pod) {
+				continue
+			}
+			if dswp.keepTerminatedPodVolumes {
+				continue
+			}
+		}
+
+		// Once a pod has been deleted from kubelet pod manager, do not delete
+		// it immediately from volume manager. Instead, check the kubelet
+		// containerRuntime to verify that all containers in the pod have been
+		// terminated.
+		if !runningPodsFetched {
+			var getPodsErr error
+			runningPods, getPodsErr = dswp.kubeContainerRuntime.GetPods(false)
+			if getPodsErr != nil {
+				klog.Errorf(
+					&quot;kubeContainerRuntime.findAndRemoveDeletedPods returned error %v.&quot;,
+					getPodsErr)
+				continue
+			}
+
+			runningPodsFetched = true
+			dswp.timeOfLastGetPodStatus = time.Now()
+		}
+
+		runningContainers := false
+		for _, runningPod := range runningPods {
+			if runningPod.ID == volumeToMount.Pod.UID {
+				if len(runningPod.Containers) &gt; 0 {
+					runningContainers = true
+				}
+
+				break
+			}
+		}
+
+		if runningContainers {
+			klog.V(4).Infof(
+				&quot;Pod %q still has one or more containers in the non-exited state. Therefore, it will not be removed from desired state.&quot;,
+				format.Pod(volumeToMount.Pod))
+			continue
+		}
+		exists, _, _ := dswp.actualStateOfWorld.PodExistsInVolume(volumeToMount.PodName, volumeToMount.VolumeName)
+		if !exists &amp;&amp; podExists {
+			klog.V(4).Infof(
+				volumeToMount.GenerateMsgDetailed(fmt.Sprintf(&quot;Actual state has not yet has this volume mounted information and pod (%q) still exists in pod manager, skip removing volume from desired state&quot;,
+					format.Pod(volumeToMount.Pod)), &quot;&quot;))
+			continue
+		}
+		klog.V(4).Infof(volumeToMount.GenerateMsgDetailed(&quot;Removing volume from desired state&quot;, &quot;&quot;))
+
+		dswp.desiredStateOfWorld.DeletePodFromVolume(
+			volumeToMount.PodName, volumeToMount.VolumeName)
+		dswp.deleteProcessedPod(volumeToMount.PodName)
+	}
+
+	podsWithError := dswp.desiredStateOfWorld.GetPodsWithErrors()
+	for _, podName := range podsWithError {
+		if _, podExists := dswp.podManager.GetPodByUID(types.UID(podName)); !podExists {
+			dswp.desiredStateOfWorld.PopPodErrors(podName)
+		}
+	}
+}
+</code></pre>
+</li>
+</ul>
+<p>总而言之，这俩的目的就是将当前节点的期望状态，同步到DesiredStateOfWorld中，等待有人处理这个数据结构。 类似于<code>生产者</code></p>
+<h1 id="3-reconciler">3. Reconciler</h1>
+<p>负责对当前节点上的 Volume 进行管理，启动一个<code>reconcile</code>循环 ， 在方法中分三次对当前状态和期望转改不匹配的卷，进行卸载，挂载等操作。</p>
+<pre><code class="language-go">//kubelet/volumemanager/reconciler/reconciler.go
+
+func (rc *reconciler) reconciliationLoopFunc() func() {
+	return func() {
+		rc.reconcile()
+		if rc.populatorHasAddedPods() &amp;&amp; !rc.StatesHasBeenSynced() {
+			rc.sync()
+		}
+	}
+}
+</code></pre>
+<p>其中 sync 方法，最终还是调用到了reconcile方法，具体来看代码</p>
+<pre><code class="language-go">//kubelet/volumemanager/reconciler/reconciler.go
+func (rc *reconciler) reconcile() {
+	//首先保证应该被卸载的，但是依然在节点中存在卷被卸载，比如删除了 Pod 这种情况
+	rc.unmountVolumes()
+	
+	// 将应该挂载的卷，挂载到合适的位置
+	rc.mountAttachVolumes()
+
+	//将***设备***与节点分离或者卸载， 这个设备比如是 CDROM等 device
+	rc.unmountDetachDevices()
+}
+</code></pre>
+<ul>
+<li>
+<p>unmountVolumes</p>
+<pre><code class="language-go">//kubelet/volumemanager/reconciler/reconciler.go
+func (rc *reconciler) unmountVolumes() {
+	//遍历当前节点中所有的挂载信息
+	for _, mountedVolume := range rc.actualStateOfWorld.GetAllMountedVolumes() {
+		if !rc.desiredStateOfWorld.PodExistsInVolume(mountedVolume.PodName, mountedVolume.VolumeName) {
+			//如果不在期望里面，说明是要被卸载的,执行卸载动作
+			err := rc.operationExecutor.UnmountVolume(
+				mountedVolume.MountedVolume, rc.actualStateOfWorld, rc.kubeletPodsDir)
+			if err != nil &amp;&amp;
+				!nestedpendingoperations.IsAlreadyExists(err) &amp;&amp;
+				!exponentialbackoff.IsExponentialBackoff(err) {
+				// Ignore nestedpendingoperations.IsAlreadyExists and exponentialbackoff.IsExponentialBackoff errors, they are expected.
+				// Log all other errors.
+				klog.Errorf(mountedVolume.GenerateErrorDetailed(fmt.Sprintf(&quot;operationExecutor.UnmountVolume failed (controllerAttachDetachEnabled %v)&quot;, rc.controllerAttachDetachEnabled), err).Error())
+			}
+			if err == nil {
+				klog.Infof(mountedVolume.GenerateMsgDetailed(&quot;operationExecutor.UnmountVolume started&quot;, &quot;&quot;))
+			}
+		}
+	}
+}
+</code></pre>
+</li>
+<li>
+<p>mountAttachVolumes</p>
+<pre><code class="language-go">//kubelet/volumemanager/reconciler/reconciler.go
+func (rc *reconciler) mountAttachVolumes() {
+	//获取所有期望的卷挂载信息
+	for _, volumeToMount := range rc.desiredStateOfWorld.GetVolumesToMount() {
+		volMounted, devicePath, err := rc.actualStateOfWorld.PodExistsInVolume(volumeToMount.PodName, volumeToMount.VolumeName)
+		//这里得到的是，本机 Node 节点的实际目录，后续是将这个目录，挂载到 Pod 中。
+		**volumeToMount.DevicePath = devicePath**
+		if cache.IsVolumeNotAttachedError(err) {
+		// 如果实际中卷没法挂载，原因是并没有 attach，先把卷Attach 到本机 node 上
+			if rc.controllerAttachDetachEnabled || !volumeToMount.PluginIsAttachable {
+			.......
+			} else {
+			//处理 Volume 的 Attach，为什么需要 Attach，是因为某些类型的卷，必须挂载到
+			//本机的节点才可以被使用，比如 google 的 GCE，且只能Attach 到一台机器
+			//后面会具体介绍
+				volumeToAttach := operationexecutor.VolumeToAttach{
+					VolumeName: volumeToMount.VolumeName,
+					VolumeSpec: volumeToMount.VolumeSpec,
+					NodeName:   rc.nodeName,
+				}
+				klog.V(5).Infof(volumeToAttach.GenerateMsgDetailed(&quot;Starting operationExecutor.AttachVolume&quot;, &quot;&quot;))
+				err := rc.operationExecutor.AttachVolume(volumeToAttach, rc.actualStateOfWorld)
+				.......
+			}
+		} else if !volMounted || cache.IsRemountRequiredError(err) {
+			//需要重新挂载, 具体的挂载是在这里展开的
+			remountingLogStr := &quot;&quot;
+			isRemount := cache.IsRemountRequiredError(err)
+			err := rc.operationExecutor.MountVolume(
+				rc.waitForAttachTimeout,
+				volumeToMount.VolumeToMount,
+				rc.actualStateOfWorld,
+				isRemount)
+			.....
+		} else if cache.IsFSResizeRequiredError(err) &amp;&amp;
+			//纵向扩展卷信息，比如增加大小什么的
+			err := rc.operationExecutor.ExpandInUseVolume(
+				volumeToMount.VolumeToMount,
+				rc.actualStateOfWorld)
+				............
+	}
+}
+</code></pre>
+</li>
+<li>
+<p>unmountDetachDeives</p>
+<pre><code class="language-go">//kubelet/volumemanager/reconciler/reconciler.go
+func (rc *reconciler) unmountDetachDevices() {
+//遍历当前节点实际已经Attach的卷，但是没有挂载到 POD上的
+	for _, attachedVolume := range rc.actualStateOfWorld.GetUnmountedVolumes() {
+		// 如果需要调谐
+		if !rc.desiredStateOfWorld.VolumeExists(attachedVolume.VolumeName) &amp;&amp;
+			!rc.operationExecutor.IsOperationPending(attachedVolume.VolumeName, nestedpendingoperations.EmptyUniquePodName, nestedpendingoperations.EmptyNodeName) {
+			//如果设备已经挂载了，卸载
+			if attachedVolume.DeviceMayBeMounted() {
+				// Volume is globally mounted to device, unmount it
+
+				err := rc.operationExecutor.UnmountDevice(
+					attachedVolume.AttachedVolume, rc.actualStateOfWorld, rc.hostutil)
+				 ......
+			} else {
+				// 卷已经Attach到节点上了，Detach它
+				if rc.controllerAttachDetachEnabled || !attachedVolume.PluginIsAttachable {
+					rc.actualStateOfWorld.MarkVolumeAsDetached(attachedVolume.VolumeName, attachedVolume.NodeName)
+				} else {
+					//detach
+					err := rc.operationExecutor.DetachVolume(
+						attachedVolume.AttachedVolume, false /* verifySafeToDetach */, rc.actualStateOfWorld)
+					......
+			}
+		}
+	}
+}
+</code></pre>
+</li>
+</ul>
+<p>本篇主要讨论挂载<code>Mount</code> 的事情，重点来看 <code>MountVolume</code>  是怎么进行的.  从上面代码来看，挂载的操作交由了 <code>operationExecutor</code> 来执行的。</p>
+<h1 id="4-operationexecutor">4. operationExecutor</h1>
+<p>operationExecutor 是本reconciler的一个属性, 指向了OperationExecutor的一个接口，主要功能如下</p>
+<pre><code class="language-go">//volume/util/operationexecutor/operation_executor.go
+
+type OperationExecutor interface {
+	//附着卷
+	AttachVolume(volumeToAttach VolumeToAttach, actualStateOfWorld ActualStateOfWorldAttacherUpdater) error
+	VerifyVolumesAreAttachedPerNode(AttachedVolumes []AttachedVolume, nodeName types.NodeName, actualStateOfWorld ActualStateOfWorldAttacherUpdater) error
+	VerifyVolumesAreAttached(volumesToVerify map[types.NodeName][]AttachedVolume, actualStateOfWorld ActualStateOfWorldAttacherUpdater)
+	//解附着
+	DetachVolume(volumeToDetach AttachedVolume, verifySafeToDetach bool, actualStateOfWorld ActualStateOfWorldAttacherUpdater) error
+	//挂载卷
+	MountVolume(waitForAttachTimeout time.Duration, volumeToMount VolumeToMount, actualStateOfWorld ActualStateOfWorldMounterUpdater, isRemount bool) error
+	//解挂
+	UnmountVolume(volumeToUnmount MountedVolume, actualStateOfWorld ActualStateOfWorldMounterUpdater, podsDir string) error
+	//设备解挂
+	UnmountDevice(deviceToDetach AttachedVolume, actualStateOfWorld ActualStateOfWorldMounterUpdater, hostutil hostutil.HostUtils) error
+	VerifyControllerAttachedVolume(volumeToMount VolumeToMount, nodeName types.NodeName, actualStateOfWorld ActualStateOfWorldAttacherUpdater) error
+	IsOperationPending(volumeName v1.UniqueVolumeName, podName volumetypes.UniquePodName, nodeName types.NodeName) bool
+	ExpandInUseVolume(volumeToMount VolumeToMount, actualStateOfWorld ActualStateOfWorldMounterUpdater) error
+	ReconstructVolumeOperation(volumeMode v1.PersistentVolumeMode, plugin volume.VolumePlugin, mapperPlugin volume.BlockVolumePlugin, uid types.UID, podName volumetypes.UniquePodName, volumeSpecName string, volumePath string, pluginName string) (*volume.Spec, error)
+	CheckVolumeExistenceOperation(volumeSpec *volume.Spec, mountPath, volumeName string, mounter mount.Interface, uniqueVolumeName v1.UniqueVolumeName, podName volumetypes.UniquePodName, podUID types.UID, attachable volume.AttachableVolumePlugin) (bool, error)
+}
+</code></pre>
+<p>具体来看MountVolume是如何实现的</p>
+<pre><code class="language-go">//volume/util/operationexecutor/operation_executor.go
+func (oe *operationExecutor) MountVolume(
+	waitForAttachTimeout time.Duration,
+	volumeToMount VolumeToMount,
+	actualStateOfWorld ActualStateOfWorldMounterUpdater,
+	isRemount bool) error {
+	//获取当前卷是什么类型的卷
+	fsVolume, err := util.CheckVolumeModeFilesystem(volumeToMount.VolumeSpec)
+	if err != nil {
+		return err
+	}
+	var generatedOperations volumetypes.GeneratedOperations
+	if fsVolume {
+		//如果是文件系统，那么返回一个文件系统用的函数
+		generatedOperations = oe.operationGenerator.GenerateMountVolumeFunc(
+			waitForAttachTimeout, volumeToMount, actualStateOfWorld, isRemount)
+
+	} else {
+		//如果是块设备，返回块设备的挂载函数 
+		generatedOperations, err = oe.operationGenerator.GenerateMapVolumeFunc(
+			waitForAttachTimeout, volumeToMount, actualStateOfWorld)
+	}
+	if err != nil {
+		return err
+	}
+	podName := nestedpendingoperations.EmptyUniquePodName
+	//开始挂载，最终执行，是用上面返回的两个函数来进行的
+	return oe.pendingOperations.Run(
+		volumeToMount.VolumeName, podName, &quot;&quot; /* nodeName */, generatedOperations)
+}
+</code></pre>
+<p>文件系统和块设备有什么不同？ 文件系统是 linux 在块设备之上封装了一层通用的接口，可能会涉及到文件缓存之类的，块设备更靠近于底层，比如数据库这样的软件，可以直接通过操作块设备来进行存储，绕过操作系统的缓存。</p>
+<ul>
+<li>GenerateMountVolumeFunc 用来处理挂载文件系统的</li>
+<li>GenerateMapVolumeFunc  用来处理块设备的，把 device 映射一下</li>
+</ul>
+<p>来看MountVolume的 Func</p>
+<pre><code class="language-go">//volume/util/operationexecutor/operation_generator.go
+func (og *operationGenerator) GenerateMountVolumeFunc(
+	waitForAttachTimeout time.Duration,
+	volumeToMount VolumeToMount,
+	actualStateOfWorld ActualStateOfWorldMounterUpdater,
+	isRemount bool) volumetypes.GeneratedOperations {
+
+	//从当前的插件体系中，获取到这个卷对应的插件实现
+	volumePluginName := unknownVolumePlugin
+	volumePlugin, err :=
+		og.volumePluginMgr.FindPluginBySpec(volumeToMount.VolumeSpec)
+
+	mountVolumeFunc := func() (error, error) {
+		//获取插件实现
+		volumePlugin, err := og.volumePluginMgr.FindPluginBySpec(volumeToMount.VolumeSpec)
+		//检查亲缘性
+		affinityErr := checkNodeAffinity(og, volumeToMount)
+		......
+		//生成一个 Mounter，这里是插件的通用接口
+		volumeMounter, newMounterErr := volumePlugin.NewMounter(
+			volumeToMount.VolumeSpec,
+			volumeToMount.Pod,
+			volume.VolumeOptions{})
+		//如果有Attacher，先执行 attacher
+			attachableVolumePlugin, _ :=
+			og.volumePluginMgr.FindAttachablePluginBySpec(volumeToMount.VolumeSpec)
+		var volumeAttacher volume.Attacher
+		if attachableVolumePlugin != nil {
+			volumeAttacher, _ = attachableVolumePlugin.NewAttacher()
+		}
+
+		// 如果有设备挂载，处理设备挂载
+		deviceMountableVolumePlugin, _ := og.volumePluginMgr.FindDeviceMountablePluginBySpec(volumeToMount.VolumeSpec)
+		var volumeDeviceMounter volume.DeviceMounter
+		if deviceMountableVolumePlugin != nil {
+			volumeDeviceMounter, _ = deviceMountableVolumePlugin.NewDeviceMounter()
+		}
+		//权限之类的
+		var fsGroup *int64
+		var fsGroupChangePolicy *v1.PodFSGroupChangePolicy
+		if podSc := volumeToMount.Pod.Spec.SecurityContext; podSc != nil {
+			if podSc.FSGroup != nil {
+				fsGroup = podSc.FSGroup
+			}
+			if podSc.FSGroupChangePolicy != nil {
+				fsGroupChangePolicy = podSc.FSGroupChangePolicy
+			}
+		}
+		//这就是本机的待挂载的路径
+		devicePath := volumeToMount.DevicePath
+		if volumeAttacher != nil {
+			//如果需要 Attach 到本机的卷，那么实际 mount 的路径是 attach 之后的路径
+			devicePath, err = volumeAttacher.WaitForAttach(
+				volumeToMount.VolumeSpec, devicePath, volumeToMount.Pod, waitForAttachTimeout)
+			.......
+		}
+		if volumeDeviceMounter != nil {
+			//获取设备挂载路径，
+			deviceMountPath, err :=
+				volumeDeviceMounter.GetDeviceMountPath(volumeToMount.VolumeSpec)
+			// 挂载设备
+			err = volumeDeviceMounter.MountDevice(
+				volumeToMount.VolumeSpec,
+				devicePath,
+				deviceMountPath)
+			//更新实际挂载状态
+			markDeviceMountedErr := actualStateOfWorld.MarkDeviceAsMounted(
+				volumeToMount.VolumeName, devicePath, deviceMountPath)
+			if markDeviceMountedErr != nil {
+				// On failure, return error. Caller will log and retry.
+				return volumeToMount.GenerateError(&quot;MountVolume.MarkDeviceAsMounted failed&quot;, markDeviceMountedErr)
+			}
+
+			......
+		}
+
+		if og.checkNodeCapabilitiesBeforeMount {
+			if canMountErr := volumeMounter.CanMount(); canMountErr != nil {
+				err = fmt.Errorf(
+					&quot;Verify that your node machine has the required components before attempting to mount this volume type. %s&quot;,
+					canMountErr)
+				return volumeToMount.GenerateError(&quot;MountVolume.CanMount failed&quot;, err)
+			}
+		}
+
+		// 执行挂载操作
+		mountErr := volumeMounter.SetUp(volume.MounterArgs{
+			FsUser:              ioutil.FsUserFrom(volumeToMount.Pod),
+			FsGroup:             fsGroup,
+			DesiredSize:         volumeToMount.DesiredSizeLimit,
+			FSGroupChangePolicy: fsGroupChangePolicy,
+		})
+		......
+		//后续一堆处理，修正实际的挂载状态
+}
+</code></pre>
+<h1 id="5-plugins">5. plugins</h1>
+<p>从上述代码来看，挂载的操作，是交给了插件去真正执行的，插件的接口描述如下</p>
+<pre><code class="language-go">//volume/volume.go
+
+type Volume interface {
+	//准备把卷挂载到 Pod 的哪个路径
+	GetPath() string
+	MetricsProvider
+}
+//插件接口
+type Mounter interface {
+	// Uses Interface to provide the path for Docker binds.
+	Volume
+	//是否可以挂载, 主要用于校验一下
+	CanMount() error
+	//执行挂载操作
+	SetUp(mounterArgs MounterArgs) error
+	//执行挂载操作，不同的是，可以指定一个目录去挂载
+	SetUpAt(dir string, mounterArgs MounterArgs) error
+	//获取这个 mounter 插件的一堆属性，必须在挂载之后才能调用
+	GetAttributes() Attributes
+}
+</code></pre>
+<p>kubernetes提供了许多内置的插件，比如本地文件，nfs，云存储提供商等等。 找个最简单的插件来看下怎么实现的吧。 这里选 local 这个挂载器，把本机文件挂载到 pod 中去。</p>
+<pre><code class="language-go">//volume/local/local.go
+
+// SetUp bind mounts the directory to the volume path
+func (m *localVolumeMounter) SetUp(mounterArgs volume.MounterArgs) error {
+	return m.SetUpAt(m.GetPath(), mounterArgs)
+}
+
+//获取要挂载的本地目录
+func (l *localVolume) GetPath() string {
+	return l.plugin.host.GetPodVolumeDir(l.podUID, utilstrings.EscapeQualifiedName(localVolumePluginName), l.volName)
+}
+</code></pre>
+<p>首先获取本机要挂载到Pod 里的路径，最终一顿猛如虎的操作之后，得到的最终路径为</p>
+<p>/var/lib/kubelet/pods/pod的 UID/volumes/插件名/卷名</p>
+<p>当前 local 的卷名就是：kubernetes.io/local-volume, 具体来看是如何挂载的</p>
+<pre><code class="language-go">//volume/local/local.go
+func (m *localVolumeMounter) SetUpAt(dir string, mounterArgs volume.MounterArgs) error {
+	m.plugin.volumeLocks.LockKey(m.globalPath)
+	defer m.plugin.volumeLocks.UnlockKey(m.globalPath)
+	......
+	//如果没有挂载点，返回
+	notMnt, err := mount.IsNotMountPoint(m.mounter, dir)
+	......
+	//设置挂载参数，这里指定的是 bind 技术
+	options := []string{&quot;bind&quot;}
+	if m.readOnly {
+		options = append(options, &quot;ro&quot;)
+	}
+	mountOptions := util.JoinMountOptions(options, m.mountOptions)
+
+	//获取本机的绝对路径
+	globalPath := util.MakeAbsolutePath(runtime.GOOS, m.globalPath)
+	//执行挂载
+	err = m.mounter.Mount(globalPath, dir, &quot;&quot;, mountOptions)
+	......
+}
+</code></pre>
+<p>最终交由了<code>mount_linux.go</code>来进行 <code>Mount</code>操作 .</p>
+<pre><code class="language-go">//vendor/k8s.io/utils/mount/mount_linux.go
+
+func (mounter *Mounter) MountSensitive(source string, target string, fstype string, options []string, sensitiveOptions []string) error {
+	// Path to mounter binary if containerized mounter is needed. Otherwise, it is set to empty.
+	// All Linux distros are expected to be shipped with a mount utility that a support bind mounts.
+	mounterPath := &quot;&quot;
+	bind, bindOpts, bindRemountOpts, bindRemountOptsSensitive := MakeBindOptsSensitive(options, sensitiveOptions)
+	//如果采用了 bind 技术
+	if bind {
+	//直接执行了exe.Command执行 mount --bind 
+		err := mounter.doMount(mounterPath, defaultMountCommand, source, target, fstype, bindOpts, bindRemountOptsSensitive)
+		if err != nil {
+			return err
+		}
+		return mounter.doMount(mounterPath, defaultMountCommand, source, target, fstype, bindRemountOpts, bindRemountOptsSensitive)
+	}
+	// The list of filesystems that require containerized mounter on GCI image cluster
+	fsTypesNeedMounter := map[string]struct{}{
+		&quot;nfs&quot;:       {},
+		&quot;glusterfs&quot;: {},
+		&quot;ceph&quot;:      {},
+		&quot;cifs&quot;:      {},
+	}
+	if _, ok := fsTypesNeedMounter[fstype]; ok {
+		mounterPath = mounter.mounterPath
+	}
+	return mounter.doMount(mounterPath, defaultMountCommand, source, target, fstype, options, sensitiveOptions)
+}
+</code></pre>
+<pre><code class="language-go">//vendor/k8s.io/utils/mount/mount_linux.go
+func (mounter *Mounter) doMount(mounterPath string, mountCmd string, source string, target string, fstype string, options []string, sensitiveOptions []string) error {
+	mountArgs, mountArgsLogStr := MakeMountArgsSensitive(source, target, fstype, options, sensitiveOptions)
+	if len(mounterPath) &gt; 0 {
+		mountArgs = append([]string{mountCmd}, mountArgs...)
+		mountArgsLogStr = mountCmd + &quot; &quot; + mountArgsLogStr
+		mountCmd = mounterPath
+	}
+
+	if mounter.withSystemd {
+		mountCmd, mountArgs, mountArgsLogStr = AddSystemdScopeSensitive(&quot;systemd-run&quot;, target, mountCmd, mountArgs, mountArgsLogStr)
+	} else {
+	}
+	command:= exec.Command(mountCmd, mountArgs...)
+	output, err := command.CombinedOutput()
+	if err != nil {
+		klog.Errorf(&quot;Mount failed: %v\nMounting command: %s\nMounting arguments: %s\nOutput: %s\n&quot;, err, mountCmd, mountArgsLogStr, string(output))
+		return fmt.Errorf(&quot;mount failed: %v\nMounting command: %s\nMounting arguments: %s\nOutput: %s&quot;,
+			err, mountCmd, mountArgsLogStr, string(output))
+	}
+	return err
+}
+</code></pre>
+<ul>
+<li>最终执行的命令是： <code>mount —bind 源 目的</code></li>
+</ul>
+<p>当然了，除了本地 local 插件之外，k8s还内置了需要插件，比如EmptyDir, ConfigMap,Secret，NFS 等等。实现方式大同小异.</p>
+<h1 id="6-总结">6. 总结</h1>
+<p>k8s在卷管理方面大致需要以下几个组件</p>
+<ul>
+<li>
+<p>Volume Manager</p>
+<p>是卷管理的驱动入口，负责调谐 pod 和 volume，把pod 的预期卷信息，转化为实际的卷挂载。</p>
+</li>
+<li>
+<p>Volume plugins</p>
+<p>一个插件体系，提供了扩展接口，包含了各类存储提供者的plugins实现</p>
+</li>
+<li>
+<p>pv/pvc Controller</p>
+<p>运行在 Master 上的组件，主要做provision/delete, 其他文章再介绍</p>
+</li>
+<li>
+<p>Attach/Detach Controller</p>
+<p>运行在 master 上，主要做一些块设备的Attach和Detach， 比如一些设备GCE 等，必须先Attach到本机节点，之后才能被使用</p>
+</li>
+</ul>
+<p>卷挂载的主要流程大概是这样的</p>
+<ol>
+<li>用户创建 Pod，提供一个 PVC 信息</li>
+<li>Pod 被分配到节点 NodeA</li>
+<li>kubelet等待 Volume Manager 挂载完成 (还有其他的一堆等待，比如网络)</li>
+<li>PV Controller 创建持久化卷并在系统中创建 PV 对象，以及绑定 PVC</li>
+<li>Attach/Detach Controller 通过插件实现块设备的挂载
+<ul>
+<li>Volume Manager 将本机 node 节点的目录，挂载到 Pod中。执行的是mount命令。</li>
+<li>kubelet 在启动容器的时候， 通过 CRI 接口，将参数传递给 CRI 的实现者，比如 docker，docker 执行docker -v 把 Pod 的卷信息，再次通过 bind mount 技术，映射到容器中去</li>
+</ul>
+</li>
+</ol>
+<figure data-type="image" tabindex="1"><img src="http://kzltime.cn/post-images/1611475388513.png" alt="" loading="lazy"></figure>
+<ul>
+<li>Pod绑定 Volume 是把本地目录挂载到 Pod 中，并没有给容器</li>
+<li>容器绑定卷，是在启动容器StartContainer的时候，把 Pod 的卷信息 bind 给容器的</li>
+</ul>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="http://kzltime.cn/post/hello-gridea/" class="post-title gt-a-link">
+                    Hello Gridea
+                </a>
+            </div>
+        
+
+        
+
+        
+            
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js"></script>
+<script>
+    // md5.min.js
+    !function(n){
+        "use strict";
+        function d(n,t){var r=(65535&n)+(65535&t);return(n>>16)+(t>>16)+(r>>16)<<16|65535&r}
+        function f(n,t,r,e,o,u){return d((c=d(d(t,n),d(e,u)))<<(f=o)|c>>>32-f,r);var c,f}
+        function l(n,t,r,e,o,u,c){return f(t&r|~t&e,n,t,o,u,c)}
+        function v(n,t,r,e,o,u,c){return f(t&e|r&~e,n,t,o,u,c)}
+        function g(n,t,r,e,o,u,c){return f(t^r^e,n,t,o,u,c)}
+        function m(n,t,r,e,o,u,c){return f(r^(t|~e),n,t,o,u,c)}
+        function i(n,t){var r,e,o,u,c;n[t>>5]|=128<<t%32,n[14+(t+64>>>9<<4)]=t;var f=1732584193,i=-271733879,a=-1732584194,h=271733878;for(r=0;r<n.length;r+=16)f=l(e=f,o=i,u=a,c=h,n[r],7,-680876936),h=l(h,f,i,a,n[r+1],12,-389564586),a=l(a,h,f,i,n[r+2],17,606105819),i=l(i,a,h,f,n[r+3],22,-1044525330),f=l(f,i,a,h,n[r+4],7,-176418897),h=l(h,f,i,a,n[r+5],12,1200080426),a=l(a,h,f,i,n[r+6],17,-1473231341),i=l(i,a,h,f,n[r+7],22,-45705983),f=l(f,i,a,h,n[r+8],7,1770035416),h=l(h,f,i,a,n[r+9],12,-1958414417),a=l(a,h,f,i,n[r+10],17,-42063),i=l(i,a,h,f,n[r+11],22,-1990404162),f=l(f,i,a,h,n[r+12],7,1804603682),h=l(h,f,i,a,n[r+13],12,-40341101),a=l(a,h,f,i,n[r+14],17,-1502002290),f=v(f,i=l(i,a,h,f,n[r+15],22,1236535329),a,h,n[r+1],5,-165796510),h=v(h,f,i,a,n[r+6],9,-1069501632),a=v(a,h,f,i,n[r+11],14,643717713),i=v(i,a,h,f,n[r],20,-373897302),f=v(f,i,a,h,n[r+5],5,-701558691),h=v(h,f,i,a,n[r+10],9,38016083),a=v(a,h,f,i,n[r+15],14,-660478335),i=v(i,a,h,f,n[r+4],20,-405537848),f=v(f,i,a,h,n[r+9],5,568446438),h=v(h,f,i,a,n[r+14],9,-1019803690),a=v(a,h,f,i,n[r+3],14,-187363961),i=v(i,a,h,f,n[r+8],20,1163531501),f=v(f,i,a,h,n[r+13],5,-1444681467),h=v(h,f,i,a,n[r+2],9,-51403784),a=v(a,h,f,i,n[r+7],14,1735328473),f=g(f,i=v(i,a,h,f,n[r+12],20,-1926607734),a,h,n[r+5],4,-378558),h=g(h,f,i,a,n[r+8],11,-2022574463),a=g(a,h,f,i,n[r+11],16,1839030562),i=g(i,a,h,f,n[r+14],23,-35309556),f=g(f,i,a,h,n[r+1],4,-1530992060),h=g(h,f,i,a,n[r+4],11,1272893353),a=g(a,h,f,i,n[r+7],16,-155497632),i=g(i,a,h,f,n[r+10],23,-1094730640),f=g(f,i,a,h,n[r+13],4,681279174),h=g(h,f,i,a,n[r],11,-358537222),a=g(a,h,f,i,n[r+3],16,-722521979),i=g(i,a,h,f,n[r+6],23,76029189),f=g(f,i,a,h,n[r+9],4,-640364487),h=g(h,f,i,a,n[r+12],11,-421815835),a=g(a,h,f,i,n[r+15],16,530742520),f=m(f,i=g(i,a,h,f,n[r+2],23,-995338651),a,h,n[r],6,-198630844),h=m(h,f,i,a,n[r+7],10,1126891415),a=m(a,h,f,i,n[r+14],15,-1416354905),i=m(i,a,h,f,n[r+5],21,-57434055),f=m(f,i,a,h,n[r+12],6,1700485571),h=m(h,f,i,a,n[r+3],10,-1894986606),a=m(a,h,f,i,n[r+10],15,-1051523),i=m(i,a,h,f,n[r+1],21,-2054922799),f=m(f,i,a,h,n[r+8],6,1873313359),h=m(h,f,i,a,n[r+15],10,-30611744),a=m(a,h,f,i,n[r+6],15,-1560198380),i=m(i,a,h,f,n[r+13],21,1309151649),f=m(f,i,a,h,n[r+4],6,-145523070),h=m(h,f,i,a,n[r+11],10,-1120210379),a=m(a,h,f,i,n[r+2],15,718787259),i=m(i,a,h,f,n[r+9],21,-343485551),f=d(f,e),i=d(i,o),a=d(a,u),h=d(h,c);return[f,i,a,h]}
+        function a(n){var t,r="",e=32*n.length;for(t=0;t<e;t+=8)r+=String.fromCharCode(n[t>>5]>>>t%32&255);return r}
+        function h(n){var t,r=[];for(r[(n.length>>2)-1]=void 0,t=0;t<r.length;t+=1)r[t]=0;var e=8*n.length;for(t=0;t<e;t+=8)r[t>>5]|=(255&n.charCodeAt(t/8))<<t%32;return r}
+        function e(n){var t,r,e="0123456789abcdef",o="";for(r=0;r<n.length;r+=1)t=n.charCodeAt(r),o+=e.charAt(t>>>4&15)+e.charAt(15&t);return o}
+        function r(n){return unescape(encodeURIComponent(n))}
+        function o(n){return a(i(h(t=r(n)),8*t.length));var t}
+        function u(n,t){return function(n,t){var r,e,o=h(n),u=[],c=[];for(u[15]=c[15]=void 0,16<o.length&&(o=i(o,8*n.length)),r=0;r<16;r+=1)u[r]=909522486^o[r],c[r]=1549556828^o[r];return e=i(u.concat(h(t)),512+8*t.length),a(i(c.concat(e),640))}(r(n),r(t))}
+        function t(n,t,r){return t?r?u(t,n):e(u(t,n)):r?o(n):e(o(n))}
+        "function"==typeof define&&define.amd?define(function(){return t}):"object"==typeof module&&module.exports?module.exports=t:n.md5=t;
+    }(this);
+</script>
+
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: 'cd042d5069b1dd0833b9',
+    clientSecret: 'd6c4d43abaeafa7a6097742cf0c98e78ee959157',
+    repo: 'kangzhanlei.github.io',
+    owner: 'kangzhanlei',
+    admin: ['kangzhanlei'],
+    id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false       // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+            
+
+            
+        
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">Less is More</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/kangzhanlei" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+                <a href="https://weibo.com/kangzhanlei" target="_blank">
+                    <i class="fab fa-weibo gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+                <a href="https://www.zhihu.com/people/kangzl" target="_blank">
+                    <i class="fab fa-zhihu gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        Powered by <a href="http://kzltime.cn" target="_blank">kzl</a>
+    </div>
+    <div>
+        Theme by <a href="https://imhanjie.com/" target="_blank">imhanjie</a>, Powered by <a
+                href="https://github.com/getgridea/gridea" target="_blank">Gridea | <a href="http://kzltime.cn/atom.xml" target="_blank">RSS</a></a>
+    </div>
+</div>
+
+<script>
+  hljs.initHighlightingOnLoad()
+</script>
+
+    </div>
+</div>
+</body>
+</html>
