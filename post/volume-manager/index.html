@@ -6,7 +6,7 @@
 
 <title>Kubernetes学习笔记 - Volume Manager | Kzl Time </title>
 
-<link rel="shortcut icon" href="http://kzltime.cn/favicon.ico?v=1611475547338">
+<link rel="shortcut icon" href="http://kzltime.cn/favicon.ico?v=1611476362523">
 
 <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
 <link rel="stylesheet" href="http://kzltime.cn/styles/main.css">
@@ -179,7 +179,7 @@
             
         </div>
         <div style="text-align: center">
-            <form id="gridea-search-form" style="position: relative" data-update="1611475547338"
+            <form id="gridea-search-form" style="position: relative" data-update="1611476362523"
                 action="/search/index.html">
                 <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
                 <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
@@ -216,7 +216,7 @@
                 </div>
                 <div class="post-content">
                     <blockquote>
-<p>所有的相关代码，都基于kubernetes v19.3</p>
+<p>所有的相关代码，都基于kubernetes v1.19.3</p>
 </blockquote>
 <h1 id="1-运行原理">1. 运行原理</h1>
 <p>kubelet启动时会调用<code>volumeMananger</code>的 <code>Run</code> 方法启动卷管理器。 它负责在当前节点的 Pod 和 Volume 发生变化的时候，对 Volume 进行挂载和卸载等操作。</p>
@@ -864,13 +864,6 @@ func (mounter *Mounter) doMount(mounterPath string, mountCmd string, source stri
         </div>
 
         
-            <div class="next-post">
-                <div class="next gt-c-content-color-first">下一篇</div>
-                <a href="http://kzltime.cn/post/hello-gridea/" class="post-title gt-a-link">
-                    Hello Gridea
-                </a>
-            </div>
-        
 
         
 
@@ -927,47 +920,44 @@ func (mounter *Mounter) doMount(mounterPath string, mountCmd string, source stri
         
 
         <div class="site-footer gt-c-content-color-first">
-    <div class="slogan gt-c-content-color-first">Less is More</div>
+    <div class="slogan gt-c-content-color-first">
+        Less is More
+    </div>
     <div class="social-container">
         
             
                 <a href="https://github.com/kangzhanlei" target="_blank">
                     <i class="fab fa-github gt-c-content-color-first"></i>
                 </a>
+                
+                    
             
-        
-            
-        
+                    
             
                 <a href="https://weibo.com/kangzhanlei" target="_blank">
                     <i class="fab fa-weibo gt-c-content-color-first"></i>
                 </a>
-            
-        
+                
+                    
             
                 <a href="https://www.zhihu.com/people/kangzl" target="_blank">
                     <i class="fab fa-zhihu gt-c-content-color-first"></i>
                 </a>
+                
+                    
             
-        
+                    
             
-        
-            
-        
+                    
     </div>
     <div class="footer-info">
-        Powered by <a href="http://kzltime.cn" target="_blank">kzl</a>
-    </div>
-    <div>
-        Theme by <a href="https://imhanjie.com/" target="_blank">imhanjie</a>, Powered by <a
-                href="https://github.com/getgridea/gridea" target="_blank">Gridea | <a href="http://kzltime.cn/atom.xml" target="_blank">RSS</a></a>
+        Powered by <a href="mailto:kangzhanlei@qq.com" target="_blank">kzl</a>
     </div>
 </div>
 
 <script>
-  hljs.initHighlightingOnLoad()
+    hljs.initHighlightingOnLoad()
 </script>
-
     </div>
 </div>
 </body>
