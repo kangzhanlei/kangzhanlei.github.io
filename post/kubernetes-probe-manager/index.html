@@ -6,7 +6,7 @@
 
 <title>kubernetes学习笔记 -  Probe Manager | Kzl Time </title>
 
-<link rel="shortcut icon" href="http://kzltime.cn/favicon.ico?v=1611476362523">
+<link rel="shortcut icon" href="http://kzltime.cn/favicon.ico?v=1611476636155">
 
 <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
 <link rel="stylesheet" href="http://kzltime.cn/styles/main.css">
@@ -179,7 +179,7 @@
             
         </div>
         <div style="text-align: center">
-            <form id="gridea-search-form" style="position: relative" data-update="1611476362523"
+            <form id="gridea-search-form" style="position: relative" data-update="1611476636155"
                 action="/search/index.html">
                 <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
                 <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
@@ -305,7 +305,7 @@ func (m *manager) AddPod(pod *v1.Pod) {
 <p>从代码上来看, probeManager 支持三种类型的探针:</p>
 <ul>
 <li>StartupProbe</li>
-<li>ReadnessProbe</li>
+<li>ReadinessProbe</li>
 <li>LivenessProbe</li>
 </ul>
 <p>不管是什么类型的探针,最终都是为<code>每个容器产生了一个新的 worker</code> 来处理的.</p>
@@ -620,7 +620,7 @@ case update := &lt;-kl.livenessManager.Updates():
 		}
 </code></pre>
 <p>kubelet 启动之后, 会从livenessManager的探测结果中读取 <code>Update</code> , 如果有容器失败了, 那么会获取这个容器对应的 Pod, 然后调用<code>HandlePodSyncs</code>方法, 杀死这个 pod,然后重新拉起一个新的 Pod. 具体的代码见 kubelet, 这里不再展开了.</p>
-<h2 id="42-readnessmanager">4.2 readnessManager</h2>
+<h2 id="42-readinessmanager">4.2 readinessManager</h2>
 <p>这种类型的探针,称为就绪探针, 意思是, 当容器准备好了,可以接受请求了, 比如 service 就是在就绪探针有了结果的情况下, 才会把流量转发到 Pod 中来. 不然没有就绪就转发流量,可能会造成流量丢失.</p>
 <p>在prober_manager启动的时候, 执行了以下逻辑</p>
 <pre><code class="language-go">//kubelet/prober/prober_manager.go 
@@ -656,7 +656,7 @@ func (m *manager) updateStartup() {
 <h1 id="5-总结">5. 总结</h1>
 <ul>
 <li>livenessProbe 用来探活, 检查容器是否还在运行, 可以为 pod 中的每个容器设置存活探针. 如果探测失败, kubernetes 将定期的执行探针并重新启动容器</li>
-<li>readiniessProbe 就绪探针用来确定, 特定的 pod 是否可以接受客户端的请求, 当容器就绪探针返回成功时, 表示容器已经准备好接受请求了.</li>
+<li>readinessProbe 就绪探针用来确定, 特定的 pod 是否可以接受客户端的请求, 当容器就绪探针返回成功时, 表示容器已经准备好接受请求了.</li>
 </ul>
 <p>启动容器时，可以为Kubernetes配置一个等待时间，经过等待时间后才可以执行第一次准备就绪检查。之后，它会周期性地调用探针，并根据就绪探针的结果采取行动。如果某个pod报告它尚未准备就绪，则会从该服务中删除该pod。如果pod再次准备就绪，则重新添加pod。与存活探针不同，如果容器未通过准备检查，则不会被终止或重新启动。这是存活探针与就绪探针之间的重要区别。存活探针通过杀死异常的容器并用新的正常容器替代它们来保持pod正常工作，而就绪探针确保只有准备好处理请求的pod才可以接收它们（请求）。这在容器启动时最为必要，当然在容器运行一段时间后也是有用的。</p>
 <p>探针支持是三种探测容器的机制</p>
