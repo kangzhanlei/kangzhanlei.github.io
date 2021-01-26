@@ -8,7 +8,7 @@
 <meta name="keywords" content="Kzl Time">
 <meta name="description" content="Less is More">
 <meta name="theme-color" content="#000">
-<title>kubernetes学习笔记 -  Probe Manager | Kzl Time </title>
+<title>Kubernetes 学习笔记 - kubelet 启动 | Kzl Time </title>
 <link rel="shortcut icon" href="/favicon.ico?v=1611640145052">
 <link rel="stylesheet" href="/media/css/pisces.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
@@ -48,7 +48,7 @@
 </script>
 
 
-  <meta name="description" content="kubernetes学习笔记 -  Probe Manager" />
+  <meta name="description" content="Kubernetes 学习笔记 - kubelet 启动" />
   <meta name="keywords" content="源码分析,kubernetes" />
 </head>
 
@@ -243,17 +243,8 @@
   <div class="toc-wrapper  auto"
     id="toc_wrapper">
     <ul class="markdownIt-TOC">
-<li><a href="#1-%E5%90%AF%E5%8A%A8%E6%8E%A2%E6%B5%8B">1. 启动探测</a></li>
-<li><a href="#2-probemanager">2. probeManager</a></li>
-<li><a href="#3-worker">3. worker</a></li>
-<li><a href="#4-resultmanager">4. resultManager</a>
-<ul>
-<li><a href="#41-livenessmanager">4.1 livenessManager</a></li>
-<li><a href="#42-readinessmanager">4.2 readinessManager</a></li>
-<li><a href="#43-startupmanager">4.3 startupManager</a></li>
-</ul>
-</li>
-<li><a href="#5-%E6%80%BB%E7%BB%93">5. 总结</a></li>
+<li><a href="#cmd">cmd</a></li>
+<li><a href="#newkubelet">newKubelet</a></li>
 </ul>
 
   </div>
@@ -519,8 +510,8 @@
           <div class="section bg-color post post-page">
             <section class="post-header">
   <h1 class="post-title">
-    <a class="post-title-link" href="http://kzltime.cn/post/kubernetes-probe-manager/">
-      kubernetes学习笔记 -  Probe Manager
+    <a class="post-title-link" href="http://kzltime.cn/post/kubernetes-kubelet/">
+      Kubernetes 学习笔记 - kubelet 启动
     </a>
   </h1>
   <div class="post-meta">
@@ -528,7 +519,7 @@
     <span class="meta-item pc-show">
       <i class="fa fa-calendar-o"></i>
       <span class="language" data-lan="publish">发布于</span>
-      <span class="publish-time" data-t="2021-01-24 16:12:09">2021-01-24</span>
+      <span class="publish-time" data-t="2021-01-26 19:26:36">2021-01-26</span>
       <span class="post-meta-divider pc-show">|</span>
     </span>
     
@@ -553,467 +544,19 @@
     
     <span class="meta-item">
       <i class="fa fa-clock-o"></i>
-      <span>17<span class="language" data-lan="minute">分钟</span></span>
+      <span>1<span class="language" data-lan="minute">分钟</span></span>
     </span>
     <span class="meta-item">
       <span class="post-meta-divider">|</span>
       <i class="fa fa-file-word-o"></i>
-      <span>3640<span class="pc-show language" data-lan="words">字数</span></span>
+      <span>2<span class="pc-show language" data-lan="words">字数</span></span>
     </span>
     
   </div>
 </section>
             <div class="post-body next-md-body" id="post_body">
-              <blockquote>
-<p>所有的相关代码，都基于kubernetes v1.19.3</p>
-</blockquote>
-<h1 id="1-启动探测">1. 启动探测</h1>
-<p>kubelet负责周期性的调谐 Pod，在需要创建新的Pod 的时候，对每一个 Pod 增加一个探针来探测 Pod 的状态。 下面是启动代码</p>
-<pre><code class="language-go">//kubelet/kubelet.go
-func (kl *Kubelet) HandlePodAdditions(pods []*v1.Pod) {
-	start := kl.clock.Now()
-	sort.Sort(sliceutils.PodsByCreationTime(pods))
-	for _, pod := range pods {
-		existingPods := kl.podManager.GetPods()
-		//增加到 podManager 中，以后查询 pod 都会从这里查
-		kl.podManager.AddPod(pod)
-		//如果是镜像 Pod，他只是静态 Pod 的一个影子而已，不会参与增加，删除什么的
-		//对镜像 Pod 的操作，都只是对静态 Pod 的一次刷新而已
-		if kubetypes.IsMirrorPod(pod) {
-			kl.handleMirrorPod(pod, start)
-			continue
-		}
-
-		if !kl.podIsTerminated(pod) {
-			activePods := kl.filterOutTerminatedPods(existingPods)
-			//检查当前节点是否可以接受新的 Pod 申请
-			if ok, reason, message := kl.canAdmitPod(activePods, pod); !ok {
-				kl.rejectPod(pod, reason, message)
-				continue
-			}
-		}
-		mirrorPod, _ := kl.podManager.GetMirrorPodByPod(pod)
-		//交给 worker 去处理 Pod 的新增事宜，这里暂且不关注
-		kl.dispatchWork(pod, kubetypes.SyncPodCreate, mirrorPod, start)
-		//本章的重点，将新增的 Pod 加入到probeManager中去
-		**kl.probeManager.AddPod(pod)**
-	}
-}
-</code></pre>
-<h1 id="2-probemanager">2. probeManager</h1>
-<p>probeManager 主要对 Pod 进行可用性的探测， 具体来看<code>AddPod</code>是怎么处理的</p>
-<pre><code class="language-go">//kubelet/probe/prober_manager.go
-func (m *manager) AddPod(pod *v1.Pod) {
-	//因为可能同时要处理多个 pod，加锁
-	m.workerLock.Lock()
-	defer m.workerLock.Unlock()
-
-	key := probeKey{podUID: pod.UID}
-	//获取所有的容器
-	for _, c := range pod.Spec.Containers {
-		key.containerName = c.Name
-		//如果支持StartupProbe
-		if c.StartupProbe != nil &amp;&amp; utilfeature.DefaultFeatureGate.Enabled(features.StartupProbe) {
-			key.probeType = startup
-			if _, ok := m.workers[key]; ok {
-				klog.Errorf(&quot;Startup probe already exists! %v - %v&quot;,
-					format.Pod(pod), c.Name)
-				return
-			}
-			w := newWorker(m, startup, pod, c)
-			m.workers[key] = w
-			go w.run()
-		}
-		//处理 ReadnessProbe
-		if c.ReadinessProbe != nil {
-			key.probeType = readiness
-			if _, ok := m.workers[key]; ok {
-				klog.Errorf(&quot;Readiness probe already exists! %v - %v&quot;,
-					format.Pod(pod), c.Name)
-				return
-			}
-			w := newWorker(m, readiness, pod, c)
-			m.workers[key] = w
-			go w.run()
-		}
-		//处理 LivenessProbe
-		if c.LivenessProbe != nil {
-			key.probeType = liveness
-			if _, ok := m.workers[key]; ok {
-				klog.Errorf(&quot;Liveness probe already exists! %v - %v&quot;,
-					format.Pod(pod), c.Name)
-				return
-			}
-			w := newWorker(m, liveness, pod, c)
-			m.workers[key] = w
-			go w.run()
-		}
-	}
-}
-</code></pre>
-<p>从代码上来看, probeManager 支持三种类型的探针:</p>
-<ul>
-<li>StartupProbe</li>
-<li>ReadinessProbe</li>
-<li>LivenessProbe</li>
-</ul>
-<p>不管是什么类型的探针,最终都是为<code>每个容器产生了一个新的 worker</code> 来处理的.</p>
-<h1 id="3-worker">3. worker</h1>
-<p>来看下 worker 是做什么用的</p>
-<pre><code class="language-go">// kubelet/probe/worker.go
-func newWorker(
-	m *manager,
-	probeType probeType,
-	pod *v1.Pod,
-	container v1.Container) *worker {
-	//构造一个 worker 对象
-	w := &amp;worker{
-		stopCh:       make(chan struct{}, 1), // Buffer so stop() can be non-blocking.
-		pod:          pod,
-		container:    container,
-		probeType:    probeType,
-		probeManager: m,
-	}
-
-	switch probeType {
-	case readiness:
-		w.spec = container.ReadinessProbe
-		//探测的结果放到readnessManager中
-		w.resultsManager = m.readinessManager
-		w.initialValue = results.Failure
-	case liveness:
-		w.spec = container.LivenessProbe
-		//探测的结果放到livenessManager中
-		w.resultsManager = m.livenessManager
-		w.initialValue = results.Success
-	case startup:
-		w.spec = container.StartupProbe
-		//探测的结果放到startupManager中
-		w.resultsManager = m.startupManager
-		w.initialValue = results.Unknown
-	}
-	......
-	return w
-}
-</code></pre>
-<p>在构造 worker 的时候,不同类型的探针, 最终的探测结果交给了不同的 <code>resultManager</code> 去处理.  下面来看下他的 Run 方法是如何进行容器探测的</p>
-<pre><code class="language-go">// kubelet/probe/worker.go
-
-func (w *worker) run() {
-	probeTickerPeriod := time.Duration(w.spec.PeriodSeconds) * time.Second
-	time.Sleep(time.Duration(rand.Float64() * float64(probeTickerPeriod)))
-	//一个 ticker, 每隔一定的时间去探测一次
-	probeTicker := time.NewTicker(probeTickerPeriod)
-
-	defer func() {
-		// 如果关闭了 pod, 所有的探测都可以取消了
-		probeTicker.Stop()
-		if !w.containerID.IsEmpty() {
-			w.resultsManager.Remove(w.containerID)
-		}
-
-		w.probeManager.removeWorker(w.pod.UID, w.container.Name, w.probeType)
-		ProberResults.Delete(w.proberResultsSuccessfulMetricLabels)
-		ProberResults.Delete(w.proberResultsFailedMetricLabels)
-		ProberResults.Delete(w.proberResultsUnknownMetricLabels)
-	}()
-
-probeLoop:
-	//每隔一定的时间去执行 doProbe 去探测,如果主动要求停止,则退出循环
-	for w.doProbe() {
-		// Wait for next probe tick.
-		select {
-		case &lt;-w.stopCh:
-			break probeLoop
-		case &lt;-probeTicker.C:
-			// continue
-		}
-	}
-}
-
-</code></pre>
-<p>探测的重点转移到了doProbe方法, 来看下具体的实现</p>
-<pre><code class="language-go">// kubelet/probe/worker.go
-func (w *worker) doProbe() (keepGoing bool) {
-	defer func() { recover() }() // Actually eat panics (HandleCrash takes care of logging)
-	defer runtime.HandleCrash(func(_ interface{}) { keepGoing = true })
-	//获取 pod 的状态,获取不到就继续下一次循环
-	status, ok := w.probeManager.statusManager.GetPodStatus(w.pod.UID)
-	if !ok {
-		return true
-	}
-
-	//如果 Pod 关闭了或者终止了,那么探测器或者也没用,就不探测了,返回 false 自动终止
-	if status.Phase == v1.PodFailed || status.Phase == v1.PodSucceeded {
-		return false
-	}
-	//获取容器的状态,如果不存在,继续等着
-	c, ok := podutil.GetContainerStatus(status.ContainerStatuses, w.container.Name)
-	if !ok || len(c.ContainerID) == 0 {
-		return true // Wait for more information.
-	}
-	//这里重点说明一下是什么意思
-	//Pod 探测容器的状态,如果容器启动不成功,kubelet 会尝试重启 Pod, 会重新分配一个容器的 ID,
-	//但是 worker 只有一个, 如果容器的 ID 和之前不一致了,说明了什么? 说明了容器被重启了,那么这里
-	//需要设置onHold=false,表示我这个 worker 需要等待新的容器启动完成了,我再开启探测它, 别人家还
-	//没有启动呢,我就拼命的探测,一探测说人家挂了,又重启,还没等到人家起来呢,又探测又重启,无休止的循环了
-	//所以这里等待一下容器启动完成之后再进行探测. 
-	if w.containerID.String() != c.ContainerID {
-		if !w.containerID.IsEmpty() {
-			w.resultsManager.Remove(w.containerID)
-		}
-		w.containerID = kubecontainer.ParseContainerID(c.ContainerID)
-		w.resultsManager.Set(w.containerID, w.initialValue, w.pod)
-		// We've got a new container; resume probing.
-		**w.onHold = false**
-	}
-
-	if w.onHold {
-		//worker 在等待,直到新的容器创建成功
-		return true
-	}
-
-	if c.State.Running == nil {
-		//不是运行状态的容器
-		if !w.containerID.IsEmpty() {
-			//直接给他的状态设置为 Failure
-			w.resultsManager.Set(w.containerID, results.Failure, w.pod)
-		}
-		// 如果容器不需要被重启的话,直接不探测了,返回 false 就可以了
-		return c.State.Terminated == nil ||
-			w.pod.Spec.RestartPolicy != v1.RestartPolicyNever
-	}
-
-	//启动之后不会立刻探测,有可能人家还没有准备好, 等待一定的时间之后再去真正的探测
-	if int32(time.Since(c.State.Running.StartedAt.Time).Seconds()) &lt; w.spec.InitialDelaySeconds {
-		return true
-	}
-
-	if c.Started != nil &amp;&amp; *c.Started {
-		// 如果容器已经起来了并且通过了探针探测, 停止 startup的探测
-		if w.probeType == startup {
-			return true
-		}
-	} else {
-		// 如果容器尚未启动完成, 那么其他的探测器就先等等再探测,返回 true 表示等下一个周期再来
-		if w.probeType != startup {
-			return true
-		}
-	}
-
-	//执行探测逻辑
-	result, err := w.probeManager.prober.probe(w.probeType, w.pod, status, w.container, w.containerID)
-	if err != nil {
-	//失败了继续探测
-		return true
-	}
-	......
-	if (result == results.Failure &amp;&amp; w.resultRun &lt; int(w.spec.FailureThreshold)) ||
-		(result == results.Success &amp;&amp; w.resultRun &lt; int(w.spec.SuccessThreshold)) {
-		//探测一次不认为是成功或者失败,要多探测几次,达到阈值之后才可以认为有结果了,这里持续探测
-		return true
-	}
-	//把探测的结果写到resultManager中,不同的探针有不同的 resultManager
-	w.resultsManager.Set(w.containerID, result, w.pod)
-
-	if (w.probeType == liveness || w.probeType == startup) &amp;&amp; result == results.Failure {
-		// 容器探活探针探测失败的话,他将会被重启, 停止当前的探测,直到新的容器重新被拉起
-		w.onHold = true
-		w.resultRun = 0
-	}
-
-	return true
-}
-</code></pre>
-<p><code>doProbe</code> 主要做了几件事情:</p>
-<ul>
-<li>根据状态判断是否要持续探测</li>
-<li>执行探测逻辑 ,  探测一定的次数, 需要等到阈值满足之后才认为有了结果</li>
-<li>把结果写到 resultManager 中,供别人使用.</li>
-</ul>
-<p>真正的探测逻辑其实比较简单,如下</p>
-<pre><code class="language-go">//kubelet/prober/probe.go
-func (pb *prober) probe(probeType probeType, pod *v1.Pod, status v1.PodStatus, container v1.Container, containerID kubecontainer.ContainerID) (results.Result, error) {
-	var probeSpec *v1.Probe
-	//根据不同的探测, 设置不同的探测方法
-	switch probeType {
-	case readiness:
-		probeSpec = container.ReadinessProbe
-	case liveness:
-		probeSpec = container.LivenessProbe
-	case startup:
-		probeSpec = container.StartupProbe
-	default:
-		return results.Failure, fmt.Errorf(&quot;unknown probe type: %q&quot;, probeType)
-	}
-
-	ctrName := fmt.Sprintf(&quot;%s:%s&quot;, format.Pod(pod), container.Name)
-	if probeSpec == nil {
-		klog.Warningf(&quot;%s probe for %s is nil&quot;, probeType, ctrName)
-		return results.Success, nil
-	}
-	//开启探测逻辑, 这里带有 5 次重试,失败了自己循环探测
-	result, output, err := pb.runProbeWithRetries(probeType, probeSpec, pod, status, container, containerID, maxProbeRetries)
-	if err != nil || (result != probe.Success &amp;&amp; result != probe.Warning) {
-		// Probe failed in one way or another.
-		if err != nil {
-			klog.V(1).Infof(&quot;%s probe for %q errored: %v&quot;, probeType, ctrName, err)
-			pb.recordContainerEvent(pod, &amp;container, v1.EventTypeWarning, events.ContainerUnhealthy, &quot;%s probe errored: %v&quot;, probeType, err)
-		} else { // result != probe.Success
-			klog.V(1).Infof(&quot;%s probe for %q failed (%v): %s&quot;, probeType, ctrName, result, output)
-			pb.recordContainerEvent(pod, &amp;container, v1.EventTypeWarning, events.ContainerUnhealthy, &quot;%s probe failed: %s&quot;, probeType, output)
-		}
-		return results.Failure, err
-	}
-	if result == probe.Warning {
-		pb.recordContainerEvent(pod, &amp;container, v1.EventTypeWarning, events.ContainerProbeWarning, &quot;%s probe warning: %s&quot;, probeType, output)
-		klog.V(3).Infof(&quot;%s probe for %q succeeded with a warning: %s&quot;, probeType, ctrName, output)
-	} else {
-		klog.V(3).Infof(&quot;%s probe for %q succeeded&quot;, probeType, ctrName)
-	}
-	return results.Success, nil
-}
-</code></pre>
-<pre><code class="language-go">//kubelet/prober/probe.go
-func (pb *prober) runProbe(probeType probeType, p *v1.Probe, pod *v1.Pod, status v1.PodStatus, container v1.Container, containerID kubecontainer.ContainerID) (probe.Result, string, error) {
-	timeout := time.Duration(p.TimeoutSeconds) * time.Second
-	//如果是 exec 模式,就是在容器里执行一个命令,返回执行的结果
-	if p.Exec != nil {
-		klog.V(4).Infof(&quot;Exec-Probe Pod: %v, Container: %v, Command: %v&quot;, pod.Name, container.Name, p.Exec.Command)
-		command := kubecontainer.ExpandContainerCommandOnlyStatic(p.Exec.Command, container.Env)
-		return pb.exec.Probe(pb.newExecInContainer(container, containerID, command, timeout))
-	}
-	//如果是 http 模式,执行 http 调用,返回 code
-	if p.HTTPGet != nil {
-		scheme := strings.ToLower(string(p.HTTPGet.Scheme))
-		host := p.HTTPGet.Host
-		if host == &quot;&quot; {
-			host = status.PodIP
-		}
-		port, err := extractPort(p.HTTPGet.Port, container)
-		if err != nil {
-			return probe.Unknown, &quot;&quot;, err
-		}
-		path := p.HTTPGet.Path
-		klog.V(4).Infof(&quot;HTTP-Probe Host: %v://%v, Port: %v, Path: %v&quot;, scheme, host, port, path)
-		url := formatURL(scheme, host, port, path)
-		headers := buildHeader(p.HTTPGet.HTTPHeaders)
-		klog.V(4).Infof(&quot;HTTP-Probe Headers: %v&quot;, headers)
-		switch probeType {
-		case liveness:
-			return pb.livenessHTTP.Probe(url, headers, timeout)
-		case startup:
-			return pb.startupHTTP.Probe(url, headers, timeout)
-		default:
-			return pb.readinessHTTP.Probe(url, headers, timeout)
-		}
-	}
-	//如果是 tcp 探测,直接拨号,返回探测结果即可
-	if p.TCPSocket != nil {
-		port, err := extractPort(p.TCPSocket.Port, container)
-		if err != nil {
-			return probe.Unknown, &quot;&quot;, err
-		}
-		host := p.TCPSocket.Host
-		if host == &quot;&quot; {
-			host = status.PodIP
-		}
-		klog.V(4).Infof(&quot;TCP-Probe Host: %v, Port: %v, Timeout: %v&quot;, host, port, timeout)
-		return pb.tcp.Probe(host, port, timeout)
-	}
-	klog.Warningf(&quot;Failed to find probe builder for container: %v&quot;, container)
-	return probe.Unknown, &quot;&quot;, fmt.Errorf(&quot;missing probe handler for %s:%s&quot;, format.Pod(pod), container.Name)
-}
-</code></pre>
-<p>综上, 探针有三种不同的探测方式</p>
-<ul>
-<li>Exec 表示在容器内执行一个命令,返回执行的结果</li>
-<li>Http 表示执行一个 http 请求,返回码来决定成功还是失败</li>
-<li>Tcp 表示执行一个拨号,拨通了就认为是成功了</li>
-</ul>
-<h1 id="4-resultmanager">4. resultManager</h1>
-<p>上文描述了探针是如何执行的, 执行后的结果都收集到了对应的 resultManager 中,  类型如下:</p>
-<ul>
-<li>readinessManager</li>
-<li>livenessManager</li>
-<li>startupManager</li>
-</ul>
-<p>下面针对这三种探针的处理方式, 展开叙述</p>
-<h2 id="41-livenessmanager">4.1 livenessManager</h2>
-<p>这种类型的探针, 称为探活探针, 意思是, 探测的结果, 直接决定着 Pod 的生死, 如果探测失败了, kubelet 将会重启它.</p>
-<pre><code class="language-go">//kubelet/prober/results/results_manager.go 
-func (m *manager) Set(id kubecontainer.ContainerID, result Result, pod *v1.Pod) {
-	if m.setInternal(id, result) {
-		m.updates &lt;- Update{id, result, pod.UID}
-	}
-}
-</code></pre>
-<p>设置容器的探测结果, 其实就是把一个 <code>Update</code>结构体, 放入了updates的 channel 中去. 有人放,肯定有人读, 那么谁读了呢?  kubelet 去读, 来看代码</p>
-<pre><code class="language-go">//kubelet/kubelet.go
-
-// 截取syncLoopIteration方法, 大循环中的一部分,具体代码分析见 kubelet 启动篇
-case update := &lt;-kl.livenessManager.Updates():
-		if update.Result == proberesults.Failure {
-			// The liveness manager detected a failure; sync the pod.
-
-			// We should not use the pod from livenessManager, because it is never updated after
-			// initialization.
-			pod, ok := kl.podManager.GetPodByUID(update.PodUID)
-			if !ok {
-				// If the pod no longer exists, ignore the update.
-				klog.V(4).Infof(&quot;SyncLoop (container unhealthy): ignore irrelevant update: %#v&quot;, update)
-				break
-			}
-			klog.V(1).Infof(&quot;SyncLoop (container unhealthy): %q&quot;, format.Pod(pod))
-			handler.HandlePodSyncs([]*v1.Pod{pod})
-		}
-</code></pre>
-<p>kubelet 启动之后, 会从livenessManager的探测结果中读取 <code>Update</code> , 如果有容器失败了, 那么会获取这个容器对应的 Pod, 然后调用<code>HandlePodSyncs</code>方法, 杀死这个 pod,然后重新拉起一个新的 Pod. 具体的代码见 kubelet, 这里不再展开了.</p>
-<h2 id="42-readinessmanager">4.2 readinessManager</h2>
-<p>这种类型的探针,称为就绪探针, 意思是, 当容器准备好了,可以接受请求了, 比如 service 就是在就绪探针有了结果的情况下, 才会把流量转发到 Pod 中来. 不然没有就绪就转发流量,可能会造成流量丢失.</p>
-<p>在prober_manager启动的时候, 执行了以下逻辑</p>
-<pre><code class="language-go">//kubelet/prober/prober_manager.go 
-func (m *manager) Start() {
-	// Start syncing readiness.
-	go wait.Forever(m.updateReadiness, 0)
-	// Start syncing startup.
-	go wait.Forever(m.updateStartup, 0)
-}
-</code></pre>
-<p>启动了两个循环, 不停的探测<code>updateReadiness</code> 和 <code>updateStartup</code> , 下面来看 updateReadiness是如何处理的</p>
-<pre><code class="language-go">//kubelet/prober/prober_manager.go 
-func (m *manager) updateReadiness() {
-	//从channel 中获取状态变化
-	update := &lt;-m.readinessManager.Updates()
-	//获取状态 
-	ready := update.Result == results.Success
-	//通过statusManager设置状态 , 交给了statusManager去处理. 具体的见statusManager逻辑
-	m.statusManager.SetContainerReadiness(update.PodUID, update.ContainerID, ready)
-}
-</code></pre>
-<p>从上诉代码来看, 就绪探针把容器的探测结果, 统一交给了statusManager来处理. 具体的逻辑见statusManager. 简单来说就是把状态更新到 etcd, 然后 service 会根据状态来做进一步的判断.</p>
-<h2 id="43-startupmanager">4.3 startupManager</h2>
-<p>和readiness处理逻辑几乎一致, 不展开叙述</p>
-<pre><code class="language-go">//kubelet/prober/prober_manager.go 
-func (m *manager) updateStartup() {
-	update := &lt;-m.startupManager.Updates()
-
-	started := update.Result == results.Success
-	m.statusManager.SetContainerStartup(update.PodUID, update.ContainerID, started)
-}
-</code></pre>
-<h1 id="5-总结">5. 总结</h1>
-<ul>
-<li>livenessProbe 用来探活, 检查容器是否还在运行, 可以为 pod 中的每个容器设置存活探针. 如果探测失败, kubernetes 将定期的执行探针并重新启动容器</li>
-<li>readinessProbe 就绪探针用来确定, 特定的 pod 是否可以接受客户端的请求, 当容器就绪探针返回成功时, 表示容器已经准备好接受请求了.</li>
-</ul>
-<p>启动容器时，可以为Kubernetes配置一个等待时间，经过等待时间后才可以执行第一次准备就绪检查。之后，它会周期性地调用探针，并根据就绪探针的结果采取行动。如果某个pod报告它尚未准备就绪，则会从该服务中删除该pod。如果pod再次准备就绪，则重新添加pod。与存活探针不同，如果容器未通过准备检查，则不会被终止或重新启动。这是存活探针与就绪探针之间的重要区别。存活探针通过杀死异常的容器并用新的正常容器替代它们来保持pod正常工作，而就绪探针确保只有准备好处理请求的pod才可以接收它们（请求）。这在容器启动时最为必要，当然在容器运行一段时间后也是有用的。</p>
-<p>探针支持是三种探测容器的机制</p>
-<ul>
-<li>Http Get 探针对容器的 IP 地址(自己指定的端口和路径) 执行 Http Get 请求, 如果探测成功, 且响应代码不代表错误, 则认为探测成功, 否则认为失败,容器将被重新启动</li>
-<li>Tcp套接字尝试与容器指定的端口建立 tcp 连接,如果连接建立成功,探测成功</li>
-<li>Exec 在容器内执行任意命令,并检查命令的退出状态码, 如果状态码是 0 , 表示探测成功. 其他被认为探测失败</li>
-</ul>
+              <h1 id="cmd">cmd</h1>
+<h1 id="newkubelet">newKubelet</h1>
 
             </div>
             
@@ -1026,7 +569,7 @@ func (m *manager) updateStartup() {
     </li>
     <li class="post-copyright-link">
       <strong class="language" data-lan="link">本文链接：</strong>
-      <a href="http://kzltime.cn/post/kubernetes-probe-manager/" title="kubernetes学习笔记 -  Probe Manager">http://kzltime.cn/post/kubernetes-probe-manager/</a>
+      <a href="http://kzltime.cn/post/kubernetes-kubelet/" title="Kubernetes 学习笔记 - kubelet 启动">http://kzltime.cn/post/kubernetes-kubelet/</a>
     </li>
     <li class="post-copyright-license">
       <strong class="language" data-lan="copyright">版权声明： </strong>
@@ -1043,15 +586,11 @@ func (m *manager) updateStartup() {
   <div class="nav">
     <div class="nav-prev">
       
-        <i class="fa fa-chevron-left"></i>
-        <a class="nav-pc-next" title="Kubernetes 学习笔记 - kubelet 启动" href="http://kzltime.cn/post/kubernetes-kubelet/">Kubernetes 学习笔记 - kubelet 启动</a class="nav-pc-next">
-        <a class="nav-mobile-prev" title="Kubernetes 学习笔记 - kubelet 启动" href="http://kzltime.cn/post/kubernetes-kubelet/">上一篇</a>
-      
     </div>
     <div class="nav-next">
       
-        <a class="nav-pc-next" title="Kubernetes学习笔记 - Volume Manager" href="http://kzltime.cn/post/volume-manager/">Kubernetes学习笔记 - Volume Manager</a>
-        <a class="nav-mobile-next" title="Kubernetes学习笔记 - Volume Manager" href="http://kzltime.cn/post/volume-manager/">下一篇</a>
+        <a class="nav-pc-next" title="kubernetes学习笔记 -  Probe Manager" href="http://kzltime.cn/post/kubernetes-probe-manager/">kubernetes学习笔记 -  Probe Manager</a>
+        <a class="nav-mobile-next" title="kubernetes学习笔记 -  Probe Manager" href="http://kzltime.cn/post/kubernetes-probe-manager/">下一篇</a>
         <i class="fa fa-chevron-right"></i>
       
     </div>
