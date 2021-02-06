@@ -9,7 +9,7 @@
 <meta name="description" content="Less is More">
 <meta name="theme-color" content="#000">
 <title>Kzl Time </title>
-<link rel="shortcut icon" href="/favicon.ico?v=1612606583469">
+<link rel="shortcut icon" href="/favicon.ico?v=1612614111152">
 <link rel="stylesheet" href="/media/css/pisces.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -242,7 +242,7 @@
       <section class="post-header">
   <h1 class="post-title">
     <a class="post-title-link" href="http://kzltime.cn/post/knative-webhook-1/">
-      Knative学习笔记 - WebHook校验
+      Knative学习笔记 - WebHook
     </a>
   </h1>
   <div class="post-meta">
@@ -281,12 +281,12 @@
     
     <span class="meta-item">
       <i class="fa fa-clock-o"></i>
-      <span>12<span class="language" data-lan="minute">分钟</span></span>
+      <span>15<span class="language" data-lan="minute">分钟</span></span>
     </span>
     <span class="meta-item">
       <span class="post-meta-divider">|</span>
       <i class="fa fa-file-word-o"></i>
-      <span>2397<span class="pc-show language" data-lan="words">字数</span></span>
+      <span>2906<span class="pc-show language" data-lan="words">字数</span></span>
     </span>
     
   </div>
@@ -1077,10 +1077,119 @@ if oldObj != nil {
 		return nil, errMissingNewObject
 	}
 &lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;总结一点就是：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;设置了一堆默认的信息，没啥用&lt;/li&gt;
-&lt;/ul&gt;
+&lt;p&gt;来看下 service的setDefault方法做了些什么事情&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//pkg/apis/serving/v1/service_defaults.go
+func (s *Service) SetDefaults(ctx context.Context) {
+	ctx = apis.WithinParent(ctx, s.ObjectMeta)
+	//给 spec 设置默认值，就是 configuration 和 route
+	s.Spec.SetDefaults(apis.WithinSpec(ctx))
+	......
+}
+func (ss *ServiceSpec) SetDefaults(ctx context.Context) {
+	//给configurationSpec设置默认值
+	ss.ConfigurationSpec.SetDefaults(ctx)
+	//给routerSpec设置默认值
+	ss.RouteSpec.SetDefaults(WithDefaultConfigurationName(ctx))
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;我们比较关注configuration是怎么添加默认信息的&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//pkg/apis/serving/v1/revision_defaults.go
+func (rs *RevisionSpec) SetDefaults(ctx context.Context) {
+	cfg := config.FromContextOrDefaults(ctx)
+
+	//如果没有设置timeoutSeconds默认一个
+	if rs.TimeoutSeconds == nil || *rs.TimeoutSeconds == 0 {
+		rs.TimeoutSeconds = ptr.Int64(cfg.Defaults.RevisionTimeoutSeconds)
+	}
+
+	//设置默认的容器并发
+	if rs.ContainerConcurrency == nil {
+		rs.ContainerConcurrency = ptr.Int64(cfg.Defaults.ContainerConcurrency)
+	}
+	userContainerNames := make(sets.String, len(rs.PodSpec.Containers))
+	//遍历所有的用户容器, 生成名字的时候避免与用户名字冲突
+	for idx := range rs.PodSpec.Containers {
+		userContainerNames.Insert(rs.PodSpec.Containers[idx].Name)
+	}
+
+	nextSuffix := 0
+	defaultContainerName := cfg.Defaults.UserContainerName(ctx)
+	for idx := range rs.PodSpec.Containers {
+		if rs.PodSpec.Containers[idx].Name == &amp;quot;&amp;quot; {
+			name := defaultContainerName
+
+			if len(rs.PodSpec.Containers) &amp;gt; 1 {
+				for {
+					name = kmeta.ChildName(defaultContainerName, &amp;quot;-&amp;quot;+strconv.Itoa(nextSuffix))
+					nextSuffix++
+
+					// Continue until we get a name that doesn&#39;t clash with a user-supplied name.
+					if !userContainerNames.Has(name) {
+						break
+					}
+				}
+			}
+			//给他取一个名字
+			rs.PodSpec.Containers[idx].Name = name
+		}
+		//继续搞容器
+		rs.applyDefault(ctx, &amp;amp;rs.PodSpec.Containers[idx], cfg)
+	}
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;继续来看 revision 的代码&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//pkg/apis/serving/v1/revision_defaults.go
+func (rs *RevisionSpec) applyDefault(ctx context.Context, container *corev1.Container, cfg *config.Config) {
+	//用户资源限制	
+	if container.Resources.Requests == nil {
+		container.Resources.Requests = corev1.ResourceList{}
+	}
+
+	if container.Resources.Limits == nil {
+		container.Resources.Limits = corev1.ResourceList{}
+	}
+
+	for _, r := range []struct {
+		Name    corev1.ResourceName
+		Request *resource.Quantity
+		Limit   *resource.Quantity
+	}{{
+		Name:    corev1.ResourceCPU,
+		Request: cfg.Defaults.RevisionCPURequest,
+		Limit:   cfg.Defaults.RevisionCPULimit,
+	}, {
+		Name:    corev1.ResourceMemory,
+		Request: cfg.Defaults.RevisionMemoryRequest,
+		Limit:   cfg.Defaults.RevisionMemoryLimit,
+	}, {
+		Name:    corev1.ResourceEphemeralStorage,
+		Request: cfg.Defaults.RevisionEphemeralStorageRequest,
+		Limit:   cfg.Defaults.RevisionEphemeralStorageLimit,
+	}} {
+		if _, ok := container.Resources.Requests[r.Name]; !ok &amp;amp;&amp;amp; r.Request != nil {
+			container.Resources.Requests[r.Name] = *r.Request
+		}
+		if _, ok := container.Resources.Limits[r.Name]; !ok &amp;amp;&amp;amp; r.Limit != nil {
+			container.Resources.Limits[r.Name] = *r.Limit
+		}
+	}
+	//给容器增加探针
+	if len(rs.PodSpec.Containers) == 1 || len(container.Ports) != 0 {
+		rs.applyProbes(container)
+	}
+
+	if rs.PodSpec.EnableServiceLinks == nil &amp;amp;&amp;amp; apis.IsInCreate(ctx) {
+		rs.PodSpec.EnableServiceLinks = cfg.Defaults.EnableServiceLinks
+	}
+	**//给所有的挂载卷，都增加一个 ReadOnly 的属性**
+	vms := container.VolumeMounts
+	for i := range vms {
+		vms[i].ReadOnly = true
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;所以这里，默认给我们的卷增加一个ReadOnly的属性，让我们不能用卷，哼！！！改了&lt;/p&gt;
 &lt;h1 id=&#34;3-newvalidationadmissioncontroller&#34;&gt;3. newValidationAdmissionController&lt;/h1&gt;
 &lt;p&gt;直接上代码&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//cmd/webhook/main.go
@@ -1305,7 +1414,7 @@ func (r *Revision) Validate(ctx context.Context) *apis.FieldError {
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
-">Knative学习笔记 - WebHook校验</a>
+">Knative学习笔记 - WebHook</a>
       </div>
       
       <div class="item">
