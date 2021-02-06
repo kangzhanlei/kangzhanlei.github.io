@@ -9,7 +9,7 @@
 <meta name="description" content="Less is More">
 <meta name="theme-color" content="#000">
 <title>Kzl Time </title>
-<link rel="shortcut icon" href="/favicon.ico?v=1611640145052">
+<link rel="shortcut icon" href="/favicon.ico?v=1612606583469">
 <link rel="stylesheet" href="/media/css/pisces.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -185,19 +185,19 @@
     <div class="sidebar-item-box">
       <a href="/archives/">
         
-        <span class="site-item-stat-count">3</span>
+        <span class="site-item-stat-count">4</span>
         <span class="site-item-stat-name language" data-lan="article">文章</span>
       </a>
     </div>
     <div class="sidebar-item-box">
       <a href="">
-        <span class="site-item-stat-count">2</span>
+        <span class="site-item-stat-count">3</span>
         <span class="site-item-stat-name language" data-lan="category">分类</span>
       </a>
     </div>
     <div class="sidebar-item-box">
       <a href="/tags/">
-        <span class="site-item-stat-count">2</span>
+        <span class="site-item-stat-count">3</span>
         <span class="site-item-stat-name language" data-lan="tag">标签</span>
       </a>
     </div>
@@ -245,6 +245,25 @@
           <small class="language" data-lan="tag">标签</small>
         </h2>
       </div>
+      
+      
+      
+      
+      
+      <a href="http://kzltime.cn/post/knative-webhook-1/">
+        <div class="motion-warpper">
+          <div class="tag-post-node">
+            <h1>
+              02-06
+              <small>Knative学习笔记 - WebHook校验</small>
+            </h1>
+          </div>
+        </div>
+      </a>
+      
+      
+      
+      
       
       
       
@@ -523,6 +542,463 @@
       <hr>
     </div>
     <div class="result" id="result">
+      
+      <div class="item">
+        <a class="result-title" style="opacity: 0;" href="http://kzltime.cn/post/knative-webhook-1/"" data-c="
+          &lt;h1 id=&#34;1-启动&#34;&gt;1. 启动&lt;/h1&gt;
+&lt;p&gt;在webhook 目录下的 main.go中启动 main 方法， 首先获取上下文配置&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;ServiceName&lt;/li&gt;
+&lt;li&gt;Port&lt;/li&gt;
+&lt;li&gt;SecretName&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;然后启动 webHook 的调谐器， 一共有4个调谐器&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//cmd/webhook/main.go
+sharedmain.WebhookMainWithContext(ctx, &amp;quot;webhook&amp;quot;,
+		certificates.NewController,
+		newDefaultingAdmissionController,
+		newValidationAdmissionController,
+		newConfigValidationController,
+	)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;从这里进入 webHook 的世界。&lt;/p&gt;
+&lt;p&gt;其中webHookMainWithContext完成的主要功能有：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;解析 main 参数， 构建restClient用来操作 k8s&lt;/li&gt;
+&lt;li&gt;注入informers&lt;/li&gt;
+&lt;li&gt;设置 configmap&lt;/li&gt;
+&lt;li&gt;leader 选举&lt;/li&gt;
+&lt;li&gt;从注册的 controller 中，找出webHook 类型的控制器&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;构造webHook对象，调用 Run 方法启动&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;启动所有的informers&lt;/li&gt;
+&lt;li&gt;启动所有的controllers&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;这里重点来看第6条，如何启动webHook&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//knative.dev/pkg/injection/shareadmin/main.go
+var wh *webhook.Webhook
+	if len(webhooks) &amp;gt; 0 {
+		// Register webhook metrics
+		webhook.RegisterMetrics()
+
+		wh, err = webhook.New(ctx, webhooks)
+		if err != nil {
+			logger.Fatalw(&amp;quot;Failed to create webhook&amp;quot;, zap.Error(err))
+		}
+		eg.Go(func() error {
+			return wh.Run(ctx.Done())
+		})
+	}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;下面进入webhook.New 方法一探究竟&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//knative.dev/pkg/webhook/webhook.go
+webhook = &amp;amp;Webhook{
+		Client:       client,
+		Options:      *opts,
+		secretlister: secretInformer.Lister(),
+		Logger:       logger,
+		synced:       cancel,
+		gracePeriod:  network.DefaultDrainTimeout,
+	}
+
+	webhook.mux.HandleFunc(&amp;quot;/&amp;quot;, func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, fmt.Sprint(&amp;quot;no controller registered for: &amp;quot;, r.URL.Path), http.StatusBadRequest)
+	})
+
+	for _, controller := range controllers {
+		switch c := controller.(type) {
+		case AdmissionController:
+			handler := admissionHandler(logger, opts.StatsReporter, c, syncCtx.Done())
+			webhook.mux.Handle(c.Path(), handler)
+
+		case ConversionController:
+			handler := conversionHandler(logger, opts.StatsReporter, c)
+			webhook.mux.Handle(c.Path(), handler)
+
+		default:
+			return nil, fmt.Errorf(&amp;quot;unknown webhook controller type:  %T&amp;quot;, controller)
+		}
+
+	}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;构造了 WebHook 对象，他本身实现了 Http 的 Handler 接口， 同时注册了不同的路径处理器， 每一个 controller 都有一个 path 属性，表示请求的路径，会转向这个 controller 去处理。&lt;/p&gt;
+&lt;p&gt;WebHook的 run 方法就很简单了， 直接启动了 web 服务器&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//knative.dev/pkg/webhook/webhook.go
+server := &amp;amp;http.Server{
+		Handler: drainer,
+		Addr:    fmt.Sprint(&amp;quot;:&amp;quot;, wh.Options.Port),
+		......
+  }
+	eg, ctx := errgroup.WithContext(ctx)
+	eg.Go(func() error {
+		if err := server.ListenAndServeTLS(&amp;quot;&amp;quot;, &amp;quot;&amp;quot;); err != nil &amp;amp;&amp;amp; !errors.Is(err, http.ErrServerClosed) {
+			logger.Errorw(&amp;quot;ListenAndServeTLS for admission webhook returned error&amp;quot;, zap.Error(err))
+			return err
+		}
+		return nil
+	})
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;简单总结一下就是：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;注册多个 controller，每个 controller 处理一个path的访问请求&lt;/li&gt;
+&lt;li&gt;启动 web 服务，把对应的请求转给不同的 controller 处理.&lt;/li&gt;
+&lt;li&gt;对于admissionController来说， 接收到http请求之后， 会把request 递交给自己的&lt;code&gt;Admit&lt;/code&gt;方法来处理。重点关注即可&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1 id=&#34;2-newdefaultadmissioncontroller&#34;&gt;2. newDefaultAdmissionController&lt;/h1&gt;
+&lt;p&gt;来看这个 controller 的实现, 首先是构造方法&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//cmd/webhook/main.go
+return defaulting.NewAdmissionController(ctx,
+		
+		// 要监听那种资源的变更
+		&amp;quot;webhook.serving.knative.dev&amp;quot;,
+
+		// 回调的 http的 url 的路径，本地服务监听这个 url
+		&amp;quot;/defaulting&amp;quot;,
+
+		// 把请求转成对应的 type 类型，方便操作
+		types,
+
+		//上下文信息
+		store.ToContext,
+
+		// Whether to disallow unknown fields.
+		true,
+	)
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;意思是， 如果访问&lt;code&gt;/defaulting&lt;/code&gt;的时候，转向这个controller处理 .  同时这里有一个types如下(不同的 gvk，转成对应的数据结构)&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//cmd/webhook/main.go
+var types = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
+	servingv1.SchemeGroupVersion.WithKind(&amp;quot;Revision&amp;quot;):      &amp;amp;servingv1.Revision{},
+	servingv1.SchemeGroupVersion.WithKind(&amp;quot;Configuration&amp;quot;): &amp;amp;servingv1.Configuration{},
+	servingv1.SchemeGroupVersion.WithKind(&amp;quot;Route&amp;quot;):         &amp;amp;servingv1.Route{},
+	servingv1.SchemeGroupVersion.WithKind(&amp;quot;Service&amp;quot;):       &amp;amp;servingv1.Service{},
+
+	autoscalingv1alpha1.SchemeGroupVersion.WithKind(&amp;quot;PodAutoscaler&amp;quot;): &amp;amp;autoscalingv1alpha1.PodAutoscaler{},
+	autoscalingv1alpha1.SchemeGroupVersion.WithKind(&amp;quot;Metric&amp;quot;):        &amp;amp;autoscalingv1alpha1.Metric{},
+
+	net.SchemeGroupVersion.WithKind(&amp;quot;Certificate&amp;quot;):       &amp;amp;net.Certificate{},
+	net.SchemeGroupVersion.WithKind(&amp;quot;Ingress&amp;quot;):           &amp;amp;net.Ingress{},
+	net.SchemeGroupVersion.WithKind(&amp;quot;ServerlessService&amp;quot;): &amp;amp;net.ServerlessService{},
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;先留意即可，后续将用到。&lt;/p&gt;
+&lt;p&gt;直接来看这个controller的&lt;code&gt;Admit&lt;/code&gt;方法:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//knative.dev/pkg/webhook/resourcesemantics/defaulting/defaulting.go
+func (ac *reconciler) Admit(ctx context.Context, request *admissionv1.AdmissionRequest) *admissionv1.AdmissionResponse {
+	.....
+	patchBytes, err := ac.mutate(ctx, request)
+	.....s
+	return &amp;amp;admissionv1.AdmissionResponse{
+		Patch:   patchBytes,
+		Allowed: true,
+		PatchType: func() *admissionv1.PatchType {
+			pt := admissionv1.PatchTypeJSONPatch
+			return &amp;amp;pt
+		}(),
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;只做了一件事情 , 如果是创建或者更新请求， 直接执行&lt;code&gt;mutate&lt;/code&gt;方法，返回， 继续来看mutate 做了点啥&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//knative.dev/pkg/webhook/resourcesemantics/defaulting/defaulting.go
+func (ac *reconciler) mutate(ctx context.Context, req *admissionv1.AdmissionRequest) ([]byte, error) {
+	kind := req.Kind
+	newBytes := req.Object.Raw
+	oldBytes := req.OldObject.Raw
+	gvk := schema.GroupVersionKind{
+		Group:   kind.Group,
+		Version: kind.Version,
+		Kind:    kind.Kind,
+	}
+
+	logger := logging.FromContext(ctx)
+	//根据请求的内容，构造 gvk，不同的资源，发给不同的handler去处理
+	//把请求的信息转成对应的数据结构，方便操作
+	handler, ok := ac.handlers[gvk]
+	if !ok {
+		logger.Error(&amp;quot;Unhandled kind: &amp;quot;, gvk)
+		return nil, fmt.Errorf(&amp;quot;unhandled kind: %v&amp;quot;, gvk)
+	}
+	......
+	//下文分析
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;继续刚才的代码&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//knative.dev/pkg/webhook/resourcesemantics/defaulting/defaulting.go
+
+//如果自己实现了populatrable接口，搞成 json 转一圈，目的是填上一堆乱七八糟的东西
+//主要还是为了比对处 patch而已, 比如有的对象序列化的时候omitempty就不输出了，比对的时候就有问题了
+if _, ok := newObj.(duck.Populatable); !ok {
+		**rtp, err := roundTripPatch(newBytes, newObj)**
+		if err != nil {
+			return nil, fmt.Errorf(&amp;quot;cannot create patch for round tripped newBytes: %w&amp;quot;, err)
+		}
+		patches = append(patches, rtp...)
+	}
+//这是旧对象， 报文里发来旧对象信息和新对象信息，我们给计算一个结果返回
+if oldObj != nil {
+		//设置默认信息, 比如全局的一些配置啊，比如超时了什么的，每个资源自行处理
+		oldObj = oldObj.DeepCopyObject().(resourcesemantics.GenericCRD)
+		**oldObj.SetDefaults(ctx)**
+	
+		//如果对象有Spec属性，就注入作者啊，修改时间之类的
+		s, ok := oldObj.(apis.HasSpec)
+		if ok {
+			**setUserInfoAnnotations(ctx, s, req.Resource.Group)**
+		}
+		//如果有子对象（比如status）,放到上下文中备用
+		if req.SubResource == &amp;quot;&amp;quot; {
+			ctx = apis.WithinUpdate(ctx, oldObj)
+		} else {
+			ctx = apis.WithinSubResourceUpdate(ctx, oldObj, req.SubResource)
+		}
+	} else {
+		ctx = apis.WithinCreate(ctx)
+	}
+
+	//设置新对象的一堆信息,得到 patch
+	if patches, err = setDefaults(ctx, patches, newObj); err != nil {
+		return nil, err
+	}
+	//还是设置作者，修改时间等乱七八糟的
+	if patches, err = ac.setUserInfoAnnotations(ctx, patches, newObj, req.Resource.Group); err != nil {
+		return nil, err
+	}
+
+	// None of the validators will accept a nil value for newObj.
+	if newObj == nil {
+		return nil, errMissingNewObject
+	}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;总结一点就是：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;设置了一堆默认的信息，没啥用&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&#34;3-newvalidationadmissioncontroller&#34;&gt;3. newValidationAdmissionController&lt;/h1&gt;
+&lt;p&gt;直接上代码&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//cmd/webhook/main.go
+return validation.NewAdmissionController(ctx,
+
+		//监听 validation 的资源
+		&amp;quot;validation.webhook.serving.knative.dev&amp;quot;,
+
+		// 本地 http 服务监听的 url 路径
+		&amp;quot;/resource-validation&amp;quot;,
+
+		//把请求转换为资源对象
+		types,
+
+		//上下文 
+		store.ToContext,
+
+		// 是否阻止不认识的字段，就是 openAPI3里没有注册的字段
+		true,
+
+		// 回调接口，不同的对象执行不同的回调，来校验是否准入
+		callbacks,
+	)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;根据之前的分析， controller 收到了 http 请求之后，转向了 &lt;code&gt;Admit&lt;/code&gt; 方法&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//knative.dev/pkg/webhook/resourcessematics/validation/validation_admit.go
+func (ac *reconciler) Admit(ctx context.Context, request *admissionv1.AdmissionRequest) *admissionv1.AdmissionResponse {
+	if ac.withContext != nil {
+		ctx = ac.withContext(ctx)
+	}
+
+	kind := request.Kind
+	gvk := schema.GroupVersionKind{
+		Group:   kind.Group,
+		Version: kind.Version,
+		Kind:    kind.Kind,
+	}
+	//把请求的信息，转成 resource 资源对象, 同时得到 ctx 上下文信息
+	//上下文信息里有一堆配置，比如是否dry-run等
+	ctx, resource, err := ac.decodeRequestAndPrepareContext(ctx, request, gvk)
+	if err != nil {
+		return webhook.MakeErrorStatus(&amp;quot;decoding request failed: %v&amp;quot;, err)
+	}
+	//执行校验方法
+	if err := validate(ctx, resource, request); err != nil {
+		return webhook.MakeErrorStatus(&amp;quot;validation failed: %v&amp;quot;, err)
+	}
+	//执行 callback 方法
+	if err := ac.callback(ctx, request, gvk); err != nil {
+		return webhook.MakeErrorStatus(&amp;quot;validation callback failed: %v&amp;quot;, err)
+	}
+	//其他人没有意见，就返回通过
+	return &amp;amp;admissionv1.AdmissionResponse{Allowed: true}
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;所以重点在两个方法上. 下面来看两个方法&lt;/p&gt;
+&lt;h2 id=&#34;validate&#34;&gt;validate&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//knative.dev/pkg/webhook/resourcessematics/validation/validation_admit.go
+
+func validate(ctx context.Context, resource resourcesemantics.GenericCRD, req *admissionv1.AdmissionRequest) error {
+	logger := logging.FromContext(ctx)
+
+	//只关注 create 和 update 两种请求
+	switch req.Operation {
+	case admissionv1.Create, admissionv1.Update:
+	case admissionv1.Delete:
+		return nil // Validation handled by optional Callback, but not validatable.
+	default:
+		return nil
+	}
+	if resource == nil {
+		return errMissingNewObject
+	}
+	//这里转发给不同的资源去校验， 比如revision, configuriaon等自己处理
+	if err := resource.Validate(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;最终， 不同的资源各自去校验request 的属性是否正确。 也就是说，每个需要校验的资源，都会有实现&lt;code&gt;Validate&lt;/code&gt;接口，以后注意观察就是了。&lt;/p&gt;
+&lt;h2 id=&#34;callback&#34;&gt;callback&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//knative.dev/pkg/webhook/resourcessematics/validation/validation_admit.go
+
+func (ac *reconciler) callback(ctx context.Context, req *admissionv1.AdmissionRequest, gvk schema.GroupVersionKind) error {
+	.......
+	//调谐器里初始化的时候注册了callback处理器，不同的资源有不同的 callback
+	//各自执行 callback, 
+	if c, ok := ac.callbacks[gvk]; ok {
+		//不同的资源，对verb可能不敏感，如果支持的话再继续
+		if _, supported := c.supportedVerbs[req.Operation]; supported {
+			unstruct := &amp;amp;unstructured.Unstructured{}
+			newDecoder := json.NewDecoder(bytes.NewBuffer(toDecode))
+			if err := newDecoder.Decode(&amp;amp;unstruct); err != nil {
+				return fmt.Errorf(&amp;quot;cannot decode incoming new object: %w&amp;quot;, err)
+			}
+			//真正去执行校验是否通过
+			return c.function(ctx, unstruct)
+		}
+	}
+	return nil
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;那都有哪些 callback 呢？ 就是 controller注册的时候已经指定了&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//cmd/webhook/main.go
+var callbacks = map[schema.GroupVersionKind]validation.Callback{
+	servingv1.SchemeGroupVersion.WithKind(&amp;quot;Service&amp;quot;):       serviceValidation,
+	servingv1.SchemeGroupVersion.WithKind(&amp;quot;Configuration&amp;quot;): configValidation,
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h1 id=&#34;4-校验&#34;&gt;4. 校验&lt;/h1&gt;
+&lt;p&gt;我们比较关注&lt;code&gt;Revision&lt;/code&gt;到底有哪些校验 , 因为这里是容器相关的实现部分。 直接看Revision的 Validate是怎么实现的&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//pkg/apis/serving/v1/revision_validation.go
+
+func (r *Revision) Validate(ctx context.Context) *apis.FieldError {
+	errs := serving.ValidateObjectMetadata(ctx, r.GetObjectMeta()).Also(
+		r.ValidateLabels().ViaField(&amp;quot;labels&amp;quot;)).ViaField(&amp;quot;metadata&amp;quot;)
+	errs = errs.Also(r.Status.Validate(apis.WithinStatus(ctx)).ViaField(&amp;quot;status&amp;quot;))
+
+	if apis.IsInUpdate(ctx) {
+		original := apis.GetBaseline(ctx).(*Revision)
+		if diff, err := kmp.ShortDiff(original.Spec, r.Spec); err != nil {
+			return &amp;amp;apis.FieldError{
+				Message: &amp;quot;Failed to diff Revision&amp;quot;,
+				Paths:   []string{&amp;quot;spec&amp;quot;},
+				Details: err.Error(),
+			}
+		} else if diff != &amp;quot;&amp;quot; {
+			return &amp;amp;apis.FieldError{
+				Message: &amp;quot;Immutable fields changed (-old +new)&amp;quot;,
+				Paths:   []string{&amp;quot;spec&amp;quot;},
+				Details: diff,
+			}
+		}
+	} else {
+		errs = errs.Also(r.Spec.Validate(apis.WithinSpec(ctx)).ViaField(&amp;quot;spec&amp;quot;))
+	}
+
+	return errs
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;从上面代码来看，干了以下几件事情&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;校验ObjectMetadata
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Name 是不是dns1035规范的&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;geneerateName是不是dns1035规范的&lt;/li&gt;
+&lt;li&gt;校验annotations
+&lt;ul&gt;
+&lt;li&gt;autoscaling.knative.dev/class ,如果不是 kpa 或者 hpa 报错&lt;/li&gt;
+&lt;li&gt;minMaxScale, 比较max/min, 合法校验&lt;/li&gt;
+&lt;li&gt;panicWindowPercentage,TargetAnnotationKey, TargetUtilizationPercentageKey,TargetBurstCapacityKey&lt;/li&gt;
+&lt;li&gt;window&lt;/li&gt;
+&lt;li&gt;scaleToZeroPodRetentionPeriod&lt;/li&gt;
+&lt;li&gt;scaleDownDelay&lt;/li&gt;
+&lt;li&gt;metric&lt;/li&gt;
+&lt;li&gt;initialScale&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;校验knativeAnnotations , serving.knative.dev开头的&lt;/li&gt;
+&lt;li&gt;校验podSpec
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;检查不被允许的字段&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;代码在 &lt;code&gt;pkg/apis/serving/fieldmask.go&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;不允许的字段有
+&lt;ul&gt;
+&lt;li&gt;InitContainer&lt;/li&gt;
+&lt;li&gt;RestartPolicy&lt;/li&gt;
+&lt;li&gt;TerminationGracePeriodSeconds&lt;/li&gt;
+&lt;li&gt;ActiveDeadlineSeconds&lt;/li&gt;
+&lt;li&gt;DNSPolicy&lt;/li&gt;
+&lt;li&gt;AutomountServiceAccountToken&lt;/li&gt;
+&lt;li&gt;NodeName&lt;/li&gt;
+&lt;li&gt;HostNetwork&lt;/li&gt;
+&lt;li&gt;HostPID&lt;/li&gt;
+&lt;li&gt;HostIPC&lt;/li&gt;
+&lt;li&gt;ShareProcessNamespace&lt;/li&gt;
+&lt;li&gt;Hostname&lt;/li&gt;
+&lt;li&gt;Subdomain&lt;/li&gt;
+&lt;li&gt;SchedulerName&lt;/li&gt;
+&lt;li&gt;PriorityClassName&lt;/li&gt;
+&lt;li&gt;Priority&lt;/li&gt;
+&lt;li&gt;DNSConfig&lt;/li&gt;
+&lt;li&gt;ReadinessGates&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;校验 podSecurity&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;校验Volumes&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;检查不被允许的卷，除了一下这三个，都不被允许
+&lt;ul&gt;
+&lt;li&gt;Secret&lt;/li&gt;
+&lt;li&gt;configmap&lt;/li&gt;
+&lt;li&gt;projected&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;……其他&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;校验Containers&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;如果一个容器都没有，报错&lt;/li&gt;
+&lt;li&gt;如果有多个容器，校验是否开了multi-container的开关，否则报错&lt;/li&gt;
+&lt;li&gt;如果有一个容器，校验容器
+&lt;ul&gt;
+&lt;li&gt;只允许启动一个 port，&lt;strong&gt;这是为啥呢？？&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;不允许有探针&lt;/li&gt;
+&lt;li&gt;其他校验们 prot,resource,security,image,env,等&lt;/li&gt;
+&lt;li&gt;校验VolumeMount 信息&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;校验timeoutSeconds&lt;/li&gt;
+&lt;li&gt;校验containerConcurrency&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+">Knative学习笔记 - WebHook校验</a>
+      </div>
       
       <div class="item">
         <a class="result-title" style="opacity: 0;" href="http://kzltime.cn/post/kubernetes-kubelet/"" data-c="

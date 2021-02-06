@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>http://kzltime.cn</id>
     <title>Kzl Time </title>
-    <updated>2021-01-26T05:54:32.449Z</updated>
+    <updated>2021-02-06T10:16:27.327Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="http://kzltime.cn"/>
     <link rel="self" href="http://kzltime.cn/atom.xml"/>
@@ -10,6 +10,13 @@
     <logo>http://kzltime.cn/images/avatar.png</logo>
     <icon>http://kzltime.cn/favicon.ico</icon>
     <rights>All rights reserved 2021, Kzl Time </rights>
+    <entry>
+        <title type="html"><![CDATA[Knative学习笔记 - WebHook校验]]></title>
+        <id>http://kzltime.cn/post/knative-webhook-1/</id>
+        <link href="http://kzltime.cn/post/knative-webhook-1/">
+        </link>
+        <updated>2021-02-06T10:14:48.000Z</updated>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Kubernetes 学习笔记 - kubelet 启动]]></title>
         <id>http://kzltime.cn/post/kubernetes-kubelet/</id>

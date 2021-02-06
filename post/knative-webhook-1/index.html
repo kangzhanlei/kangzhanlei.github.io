@@ -8,7 +8,7 @@
 <meta name="keywords" content="Kzl Time">
 <meta name="description" content="Less is More">
 <meta name="theme-color" content="#000">
-<title>Kubernetes学习笔记 - Volume Manager | Kzl Time </title>
+<title>Knative学习笔记 - WebHook校验 | Kzl Time </title>
 <link rel="shortcut icon" href="/favicon.ico?v=1612606583469">
 <link rel="stylesheet" href="/media/css/pisces.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
@@ -48,8 +48,8 @@
 </script>
 
 
-  <meta name="description" content="Kubernetes学习笔记 - Volume Manager" />
-  <meta name="keywords" content="源码分析,kubernetes" />
+  <meta name="description" content="Knative学习笔记 - WebHook校验" />
+  <meta name="keywords" content="knative,源码分析,kubernetes" />
 </head>
 
 <body>
@@ -243,12 +243,15 @@
   <div class="toc-wrapper  auto"
     id="toc_wrapper">
     <ul class="markdownIt-TOC">
-<li><a href="#1-%E8%BF%90%E8%A1%8C%E5%8E%9F%E7%90%86">1. 运行原理</a></li>
-<li><a href="#2-desiredstateofworld">2. DesiredStateOfWorld</a></li>
-<li><a href="#3-reconciler">3. Reconciler</a></li>
-<li><a href="#4-operationexecutor">4. operationExecutor</a></li>
-<li><a href="#5-plugins">5. plugins</a></li>
-<li><a href="#6-%E6%80%BB%E7%BB%93">6. 总结</a></li>
+<li><a href="#1-%E5%90%AF%E5%8A%A8">1. 启动</a></li>
+<li><a href="#2-newdefaultadmissioncontroller">2. newDefaultAdmissionController</a></li>
+<li><a href="#3-newvalidationadmissioncontroller">3. newValidationAdmissionController</a>
+<ul>
+<li><a href="#validate">validate</a></li>
+<li><a href="#callback">callback</a></li>
+</ul>
+</li>
+<li><a href="#4-%E6%A0%A1%E9%AA%8C">4. 校验</a></li>
 </ul>
 
   </div>
@@ -514,8 +517,8 @@
           <div class="section bg-color post post-page">
             <section class="post-header">
   <h1 class="post-title">
-    <a class="post-title-link" href="http://kzltime.cn/post/volume-manager/">
-      Kubernetes学习笔记 - Volume Manager
+    <a class="post-title-link" href="http://kzltime.cn/post/knative-webhook-1/">
+      Knative学习笔记 - WebHook校验
     </a>
   </h1>
   <div class="post-meta">
@@ -523,13 +526,19 @@
     <span class="meta-item pc-show">
       <i class="fa fa-calendar-o"></i>
       <span class="language" data-lan="publish">发布于</span>
-      <span class="publish-time" data-t="2021-01-24 16:02:24">2021-01-24</span>
+      <span class="publish-time" data-t="2021-02-06 18:14:48">2021-02-06</span>
       <span class="post-meta-divider pc-show">|</span>
     </span>
     
     <span class="meta-item">
       <i class="fa fa-folder-o"></i>
       <span class="pc-show language" data-lan="category-in">分类于</span>
+      
+      
+      <a href="http://kzltime.cn/tag/2uJO6OO6d/">
+        <span>knative</span>
+      </a>、
+      
       
       
       <a href="http://kzltime.cn/tag/fttkivhMZ/">
@@ -548,659 +557,468 @@
     
     <span class="meta-item">
       <i class="fa fa-clock-o"></i>
-      <span>19<span class="language" data-lan="minute">分钟</span></span>
+      <span>12<span class="language" data-lan="minute">分钟</span></span>
     </span>
     <span class="meta-item">
       <span class="post-meta-divider">|</span>
       <i class="fa fa-file-word-o"></i>
-      <span>3793<span class="pc-show language" data-lan="words">字数</span></span>
+      <span>2397<span class="pc-show language" data-lan="words">字数</span></span>
     </span>
     
   </div>
 </section>
             <div class="post-body next-md-body" id="post_body">
-              <blockquote>
-<p>所有的相关代码，都基于kubernetes v1.19.3</p>
-</blockquote>
-<h1 id="1-运行原理">1. 运行原理</h1>
-<p>kubelet启动时会调用<code>volumeMananger</code>的 <code>Run</code> 方法启动卷管理器。 它负责在当前节点的 Pod 和 Volume 发生变化的时候，对 Volume 进行挂载和卸载等操作。</p>
-<pre><code class="language-go">func (vm *volumeManager) Run(sourcesReady config.SourcesReady, stopCh &lt;-chan struct{}) {
-	defer runtime.HandleCrash()
-	go vm.desiredStateOfWorldPopulator.Run(sourcesReady, stopCh)
-	go vm.reconciler.Run(stopCh)
-	metrics.Register(vm.actualStateOfWorld, vm.desiredStateOfWorld, vm.volumePluginMgr)
-	if vm.kubeClient != nil {
-		vm.volumePluginMgr.Run(stopCh)
-	}
-	&lt;-stopCh
-	klog.Infof(&quot;Shutting down Kubelet Volume Manager&quot;)
-}
-</code></pre>
-<p>主要做两件事情</p>
+              <h1 id="1-启动">1. 启动</h1>
+<p>在webhook 目录下的 main.go中启动 main 方法， 首先获取上下文配置</p>
 <ul>
-<li>desiredStateOfWorldPopulator主要负责从 API server 中获取 Pod 的信息，将他们更新到本地的一个<code>DesiredStateOfWorld</code>的数据结构中。</li>
-<li>reconciler 负责调谐，也就是根据<code>DesiredStateOfWorld</code> 的状态变更，更新实际的挂载信息。</li>
+<li>ServiceName</li>
+<li>Port</li>
+<li>SecretName</li>
 </ul>
-<p>在 Pod 的启动过程中，如果需要挂载卷，则首先等待卷挂载完成之后，才可以继续向下进行。</p>
-<h1 id="2-desiredstateofworld">2. DesiredStateOfWorld</h1>
-<p>执行一个大循环， 做的事情大致也有两个</p>
-<ul>
-<li>findAndAddNewPods</li>
-<li>findAndRemoveDeletedPods</li>
-</ul>
-<p>通过以上两个方法，分别获取节点中被添加的新 Pod 或者已经删除的老的 Pod，获取到 Pod 之后会根据当前的状态修改期望状态</p>
-<ul>
-<li>
-<p>findAndAddNewPods</p>
-<pre><code class="language-go">//kubelet/volumemanager/populator/desired_state_of_world_populator.go
-
-func (dswp *desiredStateOfWorldPopulator) findAndAddNewPods() {
-	// Map unique pod name to outer volume name to MountedVolume.
-	mountedVolumesForPod := make(map[volumetypes.UniquePodName]map[string]cache.MountedVolume)
-	......
-	processedVolumesForFSResize := sets.NewString()
-
-	//获取所有的 pod 数据
-	for _, pod := range dswp.podManager.GetPods() {
-		//如果是终止的 pod，不用挂载卷
-		if dswp.isPodTerminated(pod) {
-			continue
-		}
-		//处理特定的 pod 的卷信息，把他们放到一个desired state的数据结构里去
-		dswp.processPodVolumes(pod, mountedVolumesForPod, processedVolumesForFSResize)
-	}
-}
+<p>然后启动 webHook 的调谐器， 一共有4个调谐器</p>
+<pre><code class="language-go">//cmd/webhook/main.go
+sharedmain.WebhookMainWithContext(ctx, &quot;webhook&quot;,
+		certificates.NewController,
+		newDefaultingAdmissionController,
+		newValidationAdmissionController,
+		newConfigValidationController,
+	)
 </code></pre>
-<pre><code class="language-go">func (dswp *desiredStateOfWorldPopulator) processPodVolumes(
-	pod *v1.Pod,
-	mountedVolumesForPod map[volumetypes.UniquePodName]map[string]cache.MountedVolume,
-	processedVolumesForFSResize sets.String) {
-	if pod == nil {
-		return
-	}
-	//获取 pod 的UID
-	uniquePodName := util.GetUniquePodName(pod)
-	//在当前processedPods中缓存有这个 pod 的信息，就不处理了
-	if dswp.podPreviouslyProcessed(uniquePodName) {
-		return
-	}
+<p>从这里进入 webHook 的世界。</p>
+<p>其中webHookMainWithContext完成的主要功能有：</p>
+<ol>
+<li>解析 main 参数， 构建restClient用来操作 k8s</li>
+<li>注入informers</li>
+<li>设置 configmap</li>
+<li>leader 选举</li>
+<li>从注册的 controller 中，找出webHook 类型的控制器</li>
+<li><strong>构造webHook对象，调用 Run 方法启动</strong></li>
+<li>启动所有的informers</li>
+<li>启动所有的controllers</li>
+</ol>
+<p>这里重点来看第6条，如何启动webHook</p>
+<pre><code class="language-go">//knative.dev/pkg/injection/shareadmin/main.go
+var wh *webhook.Webhook
+	if len(webhooks) &gt; 0 {
+		// Register webhook metrics
+		webhook.RegisterMetrics()
 
-	allVolumesAdded := true
-	mounts, devices := util.GetPodVolumeNames(pod)
-
-	expandInUsePV := utilfeature.DefaultFeatureGate.Enabled(features.ExpandInUsePersistentVolumes)
-	// 从 Pod 的定义中拿到所有的待绑定的卷信息
-	for _, podVolume := range pod.Spec.Volumes {
-		if !mounts.Has(podVolume.Name) &amp;&amp; !devices.Has(podVolume.Name) {
-			continue
-		}
-
-	//创建卷信息, 后续再具体分析这个代码
-		pvc, volumeSpec, volumeGidValue, err :=
-			dswp.createVolumeSpec(podVolume, pod, mounts, devices)
+		wh, err = webhook.New(ctx, webhooks)
 		if err != nil {
-			dswp.desiredStateOfWorld.AddErrorToPod(uniquePodName, err.Error())
-			allVolumesAdded = false
-			continue
+			logger.Fatalw(&quot;Failed to create webhook&quot;, zap.Error(err))
 		}
-
-		// 把卷信息添加到数据结构中
-		_, err = dswp.desiredStateOfWorld.AddPodToVolume(
-			uniquePodName, pod, volumeSpec, podVolume.Name, volumeGidValue)
-		if err != nil {
-			dswp.desiredStateOfWorld.AddErrorToPod(uniquePodName, err.Error())
-			allVolumesAdded = false
-		} else {
-		}
-
-		if expandInUsePV {
-			dswp.checkVolumeFSResize(pod, podVolume, pvc, volumeSpec,
-				uniquePodName, mountedVolumesForPod, processedVolumesForFSResize)
-		}
-	}
-
-	//如果所有的卷都处理完毕了，标记处理完成
-	if allVolumesAdded {
-		dswp.markPodProcessed(uniquePodName)
-		// New pod has been synced. Re-mount all volumes that need it
-		// (e.g. DownwardAPI)
-		dswp.actualStateOfWorld.MarkRemountRequired(uniquePodName)
-		// Remove any stored errors for the pod, everything went well in this processPodVolumes
-		dswp.desiredStateOfWorld.PopPodErrors(uniquePodName)
-	} else if dswp.podHasBeenSeenOnce(uniquePodName) {
-		// For the Pod which has been processed at least once, even though some volumes
-		// may not have been reprocessed successfully this round, we still mark it as processed to avoid
-		// processing it at a very high frequency. The pod will be reprocessed when volume manager calls
-		// ReprocessPod() which is triggered by SyncPod.
-		dswp.markPodProcessed(uniquePodName)
-	}
-
-}
-</code></pre>
-<p>做的主要的事情就是将节点加入的新 Pod 添加到<code>DesiredStateOfWorld</code> 中。</p>
-</li>
-<li>
-<p>findAndRemoveDeletedPods</p>
-<pre><code class="language-go">func (dswp *desiredStateOfWorldPopulator) findAndRemoveDeletedPods() {
-	var runningPods []*kubecontainer.Pod
-
-	runningPodsFetched := false
-	for _, volumeToMount := range dswp.desiredStateOfWorld.GetVolumesToMount() {
-		pod, podExists := dswp.podManager.GetPodByUID(volumeToMount.Pod.UID)
-		if podExists {
-			// Skip running pods
-			if !dswp.isPodTerminated(pod) {
-				continue
-			}
-			if dswp.keepTerminatedPodVolumes {
-				continue
-			}
-		}
-
-		// Once a pod has been deleted from kubelet pod manager, do not delete
-		// it immediately from volume manager. Instead, check the kubelet
-		// containerRuntime to verify that all containers in the pod have been
-		// terminated.
-		if !runningPodsFetched {
-			var getPodsErr error
-			runningPods, getPodsErr = dswp.kubeContainerRuntime.GetPods(false)
-			if getPodsErr != nil {
-				klog.Errorf(
-					&quot;kubeContainerRuntime.findAndRemoveDeletedPods returned error %v.&quot;,
-					getPodsErr)
-				continue
-			}
-
-			runningPodsFetched = true
-			dswp.timeOfLastGetPodStatus = time.Now()
-		}
-
-		runningContainers := false
-		for _, runningPod := range runningPods {
-			if runningPod.ID == volumeToMount.Pod.UID {
-				if len(runningPod.Containers) &gt; 0 {
-					runningContainers = true
-				}
-
-				break
-			}
-		}
-
-		if runningContainers {
-			klog.V(4).Infof(
-				&quot;Pod %q still has one or more containers in the non-exited state. Therefore, it will not be removed from desired state.&quot;,
-				format.Pod(volumeToMount.Pod))
-			continue
-		}
-		exists, _, _ := dswp.actualStateOfWorld.PodExistsInVolume(volumeToMount.PodName, volumeToMount.VolumeName)
-		if !exists &amp;&amp; podExists {
-			klog.V(4).Infof(
-				volumeToMount.GenerateMsgDetailed(fmt.Sprintf(&quot;Actual state has not yet has this volume mounted information and pod (%q) still exists in pod manager, skip removing volume from desired state&quot;,
-					format.Pod(volumeToMount.Pod)), &quot;&quot;))
-			continue
-		}
-		klog.V(4).Infof(volumeToMount.GenerateMsgDetailed(&quot;Removing volume from desired state&quot;, &quot;&quot;))
-
-		dswp.desiredStateOfWorld.DeletePodFromVolume(
-			volumeToMount.PodName, volumeToMount.VolumeName)
-		dswp.deleteProcessedPod(volumeToMount.PodName)
-	}
-
-	podsWithError := dswp.desiredStateOfWorld.GetPodsWithErrors()
-	for _, podName := range podsWithError {
-		if _, podExists := dswp.podManager.GetPodByUID(types.UID(podName)); !podExists {
-			dswp.desiredStateOfWorld.PopPodErrors(podName)
-		}
-	}
-}
-</code></pre>
-</li>
-</ul>
-<p>总而言之，这俩的目的就是将当前节点的期望状态，同步到DesiredStateOfWorld中，等待有人处理这个数据结构。 类似于<code>生产者</code></p>
-<h1 id="3-reconciler">3. Reconciler</h1>
-<p>负责对当前节点上的 Volume 进行管理，启动一个<code>reconcile</code>循环 ， 在方法中分三次对当前状态和期望转改不匹配的卷，进行卸载，挂载等操作。</p>
-<pre><code class="language-go">//kubelet/volumemanager/reconciler/reconciler.go
-
-func (rc *reconciler) reconciliationLoopFunc() func() {
-	return func() {
-		rc.reconcile()
-		if rc.populatorHasAddedPods() &amp;&amp; !rc.StatesHasBeenSynced() {
-			rc.sync()
-		}
-	}
-}
-</code></pre>
-<p>其中 sync 方法，最终还是调用到了reconcile方法，具体来看代码</p>
-<pre><code class="language-go">//kubelet/volumemanager/reconciler/reconciler.go
-func (rc *reconciler) reconcile() {
-	//首先保证应该被卸载的，但是依然在节点中存在卷被卸载，比如删除了 Pod 这种情况
-	rc.unmountVolumes()
-	
-	// 将应该挂载的卷，挂载到合适的位置
-	rc.mountAttachVolumes()
-
-	//将***设备***与节点分离或者卸载， 这个设备比如是 CDROM等 device
-	rc.unmountDetachDevices()
-}
-</code></pre>
-<ul>
-<li>
-<p>unmountVolumes</p>
-<pre><code class="language-go">//kubelet/volumemanager/reconciler/reconciler.go
-func (rc *reconciler) unmountVolumes() {
-	//遍历当前节点中所有的挂载信息
-	for _, mountedVolume := range rc.actualStateOfWorld.GetAllMountedVolumes() {
-		if !rc.desiredStateOfWorld.PodExistsInVolume(mountedVolume.PodName, mountedVolume.VolumeName) {
-			//如果不在期望里面，说明是要被卸载的,执行卸载动作
-			err := rc.operationExecutor.UnmountVolume(
-				mountedVolume.MountedVolume, rc.actualStateOfWorld, rc.kubeletPodsDir)
-			if err != nil &amp;&amp;
-				!nestedpendingoperations.IsAlreadyExists(err) &amp;&amp;
-				!exponentialbackoff.IsExponentialBackoff(err) {
-				// Ignore nestedpendingoperations.IsAlreadyExists and exponentialbackoff.IsExponentialBackoff errors, they are expected.
-				// Log all other errors.
-				klog.Errorf(mountedVolume.GenerateErrorDetailed(fmt.Sprintf(&quot;operationExecutor.UnmountVolume failed (controllerAttachDetachEnabled %v)&quot;, rc.controllerAttachDetachEnabled), err).Error())
-			}
-			if err == nil {
-				klog.Infof(mountedVolume.GenerateMsgDetailed(&quot;operationExecutor.UnmountVolume started&quot;, &quot;&quot;))
-			}
-		}
-	}
-}
-</code></pre>
-</li>
-<li>
-<p>mountAttachVolumes</p>
-<pre><code class="language-go">//kubelet/volumemanager/reconciler/reconciler.go
-func (rc *reconciler) mountAttachVolumes() {
-	//获取所有期望的卷挂载信息
-	for _, volumeToMount := range rc.desiredStateOfWorld.GetVolumesToMount() {
-		volMounted, devicePath, err := rc.actualStateOfWorld.PodExistsInVolume(volumeToMount.PodName, volumeToMount.VolumeName)
-		//这里得到的是，本机 Node 节点的实际目录，后续是将这个目录，挂载到 Pod 中。
-		**volumeToMount.DevicePath = devicePath**
-		if cache.IsVolumeNotAttachedError(err) {
-		// 如果实际中卷没法挂载，原因是并没有 attach，先把卷Attach 到本机 node 上
-			if rc.controllerAttachDetachEnabled || !volumeToMount.PluginIsAttachable {
-			.......
-			} else {
-			//处理 Volume 的 Attach，为什么需要 Attach，是因为某些类型的卷，必须挂载到
-			//本机的节点才可以被使用，比如 google 的 GCE，且只能Attach 到一台机器
-			//后面会具体介绍
-				volumeToAttach := operationexecutor.VolumeToAttach{
-					VolumeName: volumeToMount.VolumeName,
-					VolumeSpec: volumeToMount.VolumeSpec,
-					NodeName:   rc.nodeName,
-				}
-				klog.V(5).Infof(volumeToAttach.GenerateMsgDetailed(&quot;Starting operationExecutor.AttachVolume&quot;, &quot;&quot;))
-				err := rc.operationExecutor.AttachVolume(volumeToAttach, rc.actualStateOfWorld)
-				.......
-			}
-		} else if !volMounted || cache.IsRemountRequiredError(err) {
-			//需要重新挂载, 具体的挂载是在这里展开的
-			remountingLogStr := &quot;&quot;
-			isRemount := cache.IsRemountRequiredError(err)
-			err := rc.operationExecutor.MountVolume(
-				rc.waitForAttachTimeout,
-				volumeToMount.VolumeToMount,
-				rc.actualStateOfWorld,
-				isRemount)
-			.....
-		} else if cache.IsFSResizeRequiredError(err) &amp;&amp;
-			//纵向扩展卷信息，比如增加大小什么的
-			err := rc.operationExecutor.ExpandInUseVolume(
-				volumeToMount.VolumeToMount,
-				rc.actualStateOfWorld)
-				............
-	}
-}
-</code></pre>
-</li>
-<li>
-<p>unmountDetachDeives</p>
-<pre><code class="language-go">//kubelet/volumemanager/reconciler/reconciler.go
-func (rc *reconciler) unmountDetachDevices() {
-//遍历当前节点实际已经Attach的卷，但是没有挂载到 POD上的
-	for _, attachedVolume := range rc.actualStateOfWorld.GetUnmountedVolumes() {
-		// 如果需要调谐
-		if !rc.desiredStateOfWorld.VolumeExists(attachedVolume.VolumeName) &amp;&amp;
-			!rc.operationExecutor.IsOperationPending(attachedVolume.VolumeName, nestedpendingoperations.EmptyUniquePodName, nestedpendingoperations.EmptyNodeName) {
-			//如果设备已经挂载了，卸载
-			if attachedVolume.DeviceMayBeMounted() {
-				// Volume is globally mounted to device, unmount it
-
-				err := rc.operationExecutor.UnmountDevice(
-					attachedVolume.AttachedVolume, rc.actualStateOfWorld, rc.hostutil)
-				 ......
-			} else {
-				// 卷已经Attach到节点上了，Detach它
-				if rc.controllerAttachDetachEnabled || !attachedVolume.PluginIsAttachable {
-					rc.actualStateOfWorld.MarkVolumeAsDetached(attachedVolume.VolumeName, attachedVolume.NodeName)
-				} else {
-					//detach
-					err := rc.operationExecutor.DetachVolume(
-						attachedVolume.AttachedVolume, false /* verifySafeToDetach */, rc.actualStateOfWorld)
-					......
-			}
-		}
-	}
-}
-</code></pre>
-</li>
-</ul>
-<p>本篇主要讨论挂载<code>Mount</code> 的事情，重点来看 <code>MountVolume</code>  是怎么进行的.  从上面代码来看，挂载的操作交由了 <code>operationExecutor</code> 来执行的。</p>
-<h1 id="4-operationexecutor">4. operationExecutor</h1>
-<p>operationExecutor 是本reconciler的一个属性, 指向了OperationExecutor的一个接口，主要功能如下</p>
-<pre><code class="language-go">//volume/util/operationexecutor/operation_executor.go
-
-type OperationExecutor interface {
-	//附着卷
-	AttachVolume(volumeToAttach VolumeToAttach, actualStateOfWorld ActualStateOfWorldAttacherUpdater) error
-	VerifyVolumesAreAttachedPerNode(AttachedVolumes []AttachedVolume, nodeName types.NodeName, actualStateOfWorld ActualStateOfWorldAttacherUpdater) error
-	VerifyVolumesAreAttached(volumesToVerify map[types.NodeName][]AttachedVolume, actualStateOfWorld ActualStateOfWorldAttacherUpdater)
-	//解附着
-	DetachVolume(volumeToDetach AttachedVolume, verifySafeToDetach bool, actualStateOfWorld ActualStateOfWorldAttacherUpdater) error
-	//挂载卷
-	MountVolume(waitForAttachTimeout time.Duration, volumeToMount VolumeToMount, actualStateOfWorld ActualStateOfWorldMounterUpdater, isRemount bool) error
-	//解挂
-	UnmountVolume(volumeToUnmount MountedVolume, actualStateOfWorld ActualStateOfWorldMounterUpdater, podsDir string) error
-	//设备解挂
-	UnmountDevice(deviceToDetach AttachedVolume, actualStateOfWorld ActualStateOfWorldMounterUpdater, hostutil hostutil.HostUtils) error
-	VerifyControllerAttachedVolume(volumeToMount VolumeToMount, nodeName types.NodeName, actualStateOfWorld ActualStateOfWorldAttacherUpdater) error
-	IsOperationPending(volumeName v1.UniqueVolumeName, podName volumetypes.UniquePodName, nodeName types.NodeName) bool
-	ExpandInUseVolume(volumeToMount VolumeToMount, actualStateOfWorld ActualStateOfWorldMounterUpdater) error
-	ReconstructVolumeOperation(volumeMode v1.PersistentVolumeMode, plugin volume.VolumePlugin, mapperPlugin volume.BlockVolumePlugin, uid types.UID, podName volumetypes.UniquePodName, volumeSpecName string, volumePath string, pluginName string) (*volume.Spec, error)
-	CheckVolumeExistenceOperation(volumeSpec *volume.Spec, mountPath, volumeName string, mounter mount.Interface, uniqueVolumeName v1.UniqueVolumeName, podName volumetypes.UniquePodName, podUID types.UID, attachable volume.AttachableVolumePlugin) (bool, error)
-}
-</code></pre>
-<p>具体来看MountVolume是如何实现的</p>
-<pre><code class="language-go">//volume/util/operationexecutor/operation_executor.go
-func (oe *operationExecutor) MountVolume(
-	waitForAttachTimeout time.Duration,
-	volumeToMount VolumeToMount,
-	actualStateOfWorld ActualStateOfWorldMounterUpdater,
-	isRemount bool) error {
-	//获取当前卷是什么类型的卷
-	fsVolume, err := util.CheckVolumeModeFilesystem(volumeToMount.VolumeSpec)
-	if err != nil {
-		return err
-	}
-	var generatedOperations volumetypes.GeneratedOperations
-	if fsVolume {
-		//如果是文件系统，那么返回一个文件系统用的函数
-		generatedOperations = oe.operationGenerator.GenerateMountVolumeFunc(
-			waitForAttachTimeout, volumeToMount, actualStateOfWorld, isRemount)
-
-	} else {
-		//如果是块设备，返回块设备的挂载函数 
-		generatedOperations, err = oe.operationGenerator.GenerateMapVolumeFunc(
-			waitForAttachTimeout, volumeToMount, actualStateOfWorld)
-	}
-	if err != nil {
-		return err
-	}
-	podName := nestedpendingoperations.EmptyUniquePodName
-	//开始挂载，最终执行，是用上面返回的两个函数来进行的
-	return oe.pendingOperations.Run(
-		volumeToMount.VolumeName, podName, &quot;&quot; /* nodeName */, generatedOperations)
-}
-</code></pre>
-<p>文件系统和块设备有什么不同？ 文件系统是 linux 在块设备之上封装了一层通用的接口，可能会涉及到文件缓存之类的，块设备更靠近于底层，比如数据库这样的软件，可以直接通过操作块设备来进行存储，绕过操作系统的缓存。</p>
-<ul>
-<li>GenerateMountVolumeFunc 用来处理挂载文件系统的</li>
-<li>GenerateMapVolumeFunc  用来处理块设备的，把 device 映射一下</li>
-</ul>
-<p>来看MountVolume的 Func</p>
-<pre><code class="language-go">//volume/util/operationexecutor/operation_generator.go
-func (og *operationGenerator) GenerateMountVolumeFunc(
-	waitForAttachTimeout time.Duration,
-	volumeToMount VolumeToMount,
-	actualStateOfWorld ActualStateOfWorldMounterUpdater,
-	isRemount bool) volumetypes.GeneratedOperations {
-
-	//从当前的插件体系中，获取到这个卷对应的插件实现
-	volumePluginName := unknownVolumePlugin
-	volumePlugin, err :=
-		og.volumePluginMgr.FindPluginBySpec(volumeToMount.VolumeSpec)
-
-	mountVolumeFunc := func() (error, error) {
-		//获取插件实现
-		volumePlugin, err := og.volumePluginMgr.FindPluginBySpec(volumeToMount.VolumeSpec)
-		//检查亲缘性
-		affinityErr := checkNodeAffinity(og, volumeToMount)
-		......
-		//生成一个 Mounter，这里是插件的通用接口
-		volumeMounter, newMounterErr := volumePlugin.NewMounter(
-			volumeToMount.VolumeSpec,
-			volumeToMount.Pod,
-			volume.VolumeOptions{})
-		//如果有Attacher，先执行 attacher
-			attachableVolumePlugin, _ :=
-			og.volumePluginMgr.FindAttachablePluginBySpec(volumeToMount.VolumeSpec)
-		var volumeAttacher volume.Attacher
-		if attachableVolumePlugin != nil {
-			volumeAttacher, _ = attachableVolumePlugin.NewAttacher()
-		}
-
-		// 如果有设备挂载，处理设备挂载
-		deviceMountableVolumePlugin, _ := og.volumePluginMgr.FindDeviceMountablePluginBySpec(volumeToMount.VolumeSpec)
-		var volumeDeviceMounter volume.DeviceMounter
-		if deviceMountableVolumePlugin != nil {
-			volumeDeviceMounter, _ = deviceMountableVolumePlugin.NewDeviceMounter()
-		}
-		//权限之类的
-		var fsGroup *int64
-		var fsGroupChangePolicy *v1.PodFSGroupChangePolicy
-		if podSc := volumeToMount.Pod.Spec.SecurityContext; podSc != nil {
-			if podSc.FSGroup != nil {
-				fsGroup = podSc.FSGroup
-			}
-			if podSc.FSGroupChangePolicy != nil {
-				fsGroupChangePolicy = podSc.FSGroupChangePolicy
-			}
-		}
-		//这就是本机的待挂载的路径
-		devicePath := volumeToMount.DevicePath
-		if volumeAttacher != nil {
-			//如果需要 Attach 到本机的卷，那么实际 mount 的路径是 attach 之后的路径
-			devicePath, err = volumeAttacher.WaitForAttach(
-				volumeToMount.VolumeSpec, devicePath, volumeToMount.Pod, waitForAttachTimeout)
-			.......
-		}
-		if volumeDeviceMounter != nil {
-			//获取设备挂载路径，
-			deviceMountPath, err :=
-				volumeDeviceMounter.GetDeviceMountPath(volumeToMount.VolumeSpec)
-			// 挂载设备
-			err = volumeDeviceMounter.MountDevice(
-				volumeToMount.VolumeSpec,
-				devicePath,
-				deviceMountPath)
-			//更新实际挂载状态
-			markDeviceMountedErr := actualStateOfWorld.MarkDeviceAsMounted(
-				volumeToMount.VolumeName, devicePath, deviceMountPath)
-			if markDeviceMountedErr != nil {
-				// On failure, return error. Caller will log and retry.
-				return volumeToMount.GenerateError(&quot;MountVolume.MarkDeviceAsMounted failed&quot;, markDeviceMountedErr)
-			}
-
-			......
-		}
-
-		if og.checkNodeCapabilitiesBeforeMount {
-			if canMountErr := volumeMounter.CanMount(); canMountErr != nil {
-				err = fmt.Errorf(
-					&quot;Verify that your node machine has the required components before attempting to mount this volume type. %s&quot;,
-					canMountErr)
-				return volumeToMount.GenerateError(&quot;MountVolume.CanMount failed&quot;, err)
-			}
-		}
-
-		// 执行挂载操作
-		mountErr := volumeMounter.SetUp(volume.MounterArgs{
-			FsUser:              ioutil.FsUserFrom(volumeToMount.Pod),
-			FsGroup:             fsGroup,
-			DesiredSize:         volumeToMount.DesiredSizeLimit,
-			FSGroupChangePolicy: fsGroupChangePolicy,
+		eg.Go(func() error {
+			return wh.Run(ctx.Done())
 		})
-		......
-		//后续一堆处理，修正实际的挂载状态
-}
-</code></pre>
-<h1 id="5-plugins">5. plugins</h1>
-<p>从上述代码来看，挂载的操作，是交给了插件去真正执行的，插件的接口描述如下</p>
-<pre><code class="language-go">//volume/volume.go
-
-type Volume interface {
-	//准备把卷挂载到 Pod 的哪个路径
-	GetPath() string
-	MetricsProvider
-}
-//插件接口
-type Mounter interface {
-	// Uses Interface to provide the path for Docker binds.
-	Volume
-	//是否可以挂载, 主要用于校验一下
-	CanMount() error
-	//执行挂载操作
-	SetUp(mounterArgs MounterArgs) error
-	//执行挂载操作，不同的是，可以指定一个目录去挂载
-	SetUpAt(dir string, mounterArgs MounterArgs) error
-	//获取这个 mounter 插件的一堆属性，必须在挂载之后才能调用
-	GetAttributes() Attributes
-}
-</code></pre>
-<p>kubernetes提供了许多内置的插件，比如本地文件，nfs，云存储提供商等等。 找个最简单的插件来看下怎么实现的吧。 这里选 local 这个挂载器，把本机文件挂载到 pod 中去。</p>
-<pre><code class="language-go">//volume/local/local.go
-
-// SetUp bind mounts the directory to the volume path
-func (m *localVolumeMounter) SetUp(mounterArgs volume.MounterArgs) error {
-	return m.SetUpAt(m.GetPath(), mounterArgs)
-}
-
-//获取要挂载的本地目录
-func (l *localVolume) GetPath() string {
-	return l.plugin.host.GetPodVolumeDir(l.podUID, utilstrings.EscapeQualifiedName(localVolumePluginName), l.volName)
-}
-</code></pre>
-<p>首先获取本机要挂载到Pod 里的路径，最终一顿猛如虎的操作之后，得到的最终路径为</p>
-<p>/var/lib/kubelet/pods/pod的 UID/volumes/插件名/卷名</p>
-<p>当前 local 的卷名就是：kubernetes.io/local-volume, 具体来看是如何挂载的</p>
-<pre><code class="language-go">//volume/local/local.go
-func (m *localVolumeMounter) SetUpAt(dir string, mounterArgs volume.MounterArgs) error {
-	m.plugin.volumeLocks.LockKey(m.globalPath)
-	defer m.plugin.volumeLocks.UnlockKey(m.globalPath)
-	......
-	//如果没有挂载点，返回
-	notMnt, err := mount.IsNotMountPoint(m.mounter, dir)
-	......
-	//设置挂载参数，这里指定的是 bind 技术
-	options := []string{&quot;bind&quot;}
-	if m.readOnly {
-		options = append(options, &quot;ro&quot;)
 	}
-	mountOptions := util.JoinMountOptions(options, m.mountOptions)
-
-	//获取本机的绝对路径
-	globalPath := util.MakeAbsolutePath(runtime.GOOS, m.globalPath)
-	//执行挂载
-	err = m.mounter.Mount(globalPath, dir, &quot;&quot;, mountOptions)
-	......
-}
 </code></pre>
-<p>最终交由了<code>mount_linux.go</code>来进行 <code>Mount</code>操作 .</p>
-<pre><code class="language-go">//vendor/k8s.io/utils/mount/mount_linux.go
+<p>下面进入webhook.New 方法一探究竟</p>
+<pre><code class="language-go">//knative.dev/pkg/webhook/webhook.go
+webhook = &amp;Webhook{
+		Client:       client,
+		Options:      *opts,
+		secretlister: secretInformer.Lister(),
+		Logger:       logger,
+		synced:       cancel,
+		gracePeriod:  network.DefaultDrainTimeout,
+	}
 
-func (mounter *Mounter) MountSensitive(source string, target string, fstype string, options []string, sensitiveOptions []string) error {
-	// Path to mounter binary if containerized mounter is needed. Otherwise, it is set to empty.
-	// All Linux distros are expected to be shipped with a mount utility that a support bind mounts.
-	mounterPath := &quot;&quot;
-	bind, bindOpts, bindRemountOpts, bindRemountOptsSensitive := MakeBindOptsSensitive(options, sensitiveOptions)
-	//如果采用了 bind 技术
-	if bind {
-	//直接执行了exe.Command执行 mount --bind 
-		err := mounter.doMount(mounterPath, defaultMountCommand, source, target, fstype, bindOpts, bindRemountOptsSensitive)
-		if err != nil {
+	webhook.mux.HandleFunc(&quot;/&quot;, func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, fmt.Sprint(&quot;no controller registered for: &quot;, r.URL.Path), http.StatusBadRequest)
+	})
+
+	for _, controller := range controllers {
+		switch c := controller.(type) {
+		case AdmissionController:
+			handler := admissionHandler(logger, opts.StatsReporter, c, syncCtx.Done())
+			webhook.mux.Handle(c.Path(), handler)
+
+		case ConversionController:
+			handler := conversionHandler(logger, opts.StatsReporter, c)
+			webhook.mux.Handle(c.Path(), handler)
+
+		default:
+			return nil, fmt.Errorf(&quot;unknown webhook controller type:  %T&quot;, controller)
+		}
+
+	}
+</code></pre>
+<p>构造了 WebHook 对象，他本身实现了 Http 的 Handler 接口， 同时注册了不同的路径处理器， 每一个 controller 都有一个 path 属性，表示请求的路径，会转向这个 controller 去处理。</p>
+<p>WebHook的 run 方法就很简单了， 直接启动了 web 服务器</p>
+<pre><code class="language-go">//knative.dev/pkg/webhook/webhook.go
+server := &amp;http.Server{
+		Handler: drainer,
+		Addr:    fmt.Sprint(&quot;:&quot;, wh.Options.Port),
+		......
+  }
+	eg, ctx := errgroup.WithContext(ctx)
+	eg.Go(func() error {
+		if err := server.ListenAndServeTLS(&quot;&quot;, &quot;&quot;); err != nil &amp;&amp; !errors.Is(err, http.ErrServerClosed) {
+			logger.Errorw(&quot;ListenAndServeTLS for admission webhook returned error&quot;, zap.Error(err))
 			return err
 		}
-		return mounter.doMount(mounterPath, defaultMountCommand, source, target, fstype, bindRemountOpts, bindRemountOptsSensitive)
-	}
-	// The list of filesystems that require containerized mounter on GCI image cluster
-	fsTypesNeedMounter := map[string]struct{}{
-		&quot;nfs&quot;:       {},
-		&quot;glusterfs&quot;: {},
-		&quot;ceph&quot;:      {},
-		&quot;cifs&quot;:      {},
-	}
-	if _, ok := fsTypesNeedMounter[fstype]; ok {
-		mounterPath = mounter.mounterPath
-	}
-	return mounter.doMount(mounterPath, defaultMountCommand, source, target, fstype, options, sensitiveOptions)
+		return nil
+	})
+</code></pre>
+<p>简单总结一下就是：</p>
+<ol>
+<li>注册多个 controller，每个 controller 处理一个path的访问请求</li>
+<li>启动 web 服务，把对应的请求转给不同的 controller 处理.</li>
+<li>对于admissionController来说， 接收到http请求之后， 会把request 递交给自己的<code>Admit</code>方法来处理。重点关注即可</li>
+</ol>
+<h1 id="2-newdefaultadmissioncontroller">2. newDefaultAdmissionController</h1>
+<p>来看这个 controller 的实现, 首先是构造方法</p>
+<pre><code class="language-go">//cmd/webhook/main.go
+return defaulting.NewAdmissionController(ctx,
+		
+		// 要监听那种资源的变更
+		&quot;webhook.serving.knative.dev&quot;,
+
+		// 回调的 http的 url 的路径，本地服务监听这个 url
+		&quot;/defaulting&quot;,
+
+		// 把请求转成对应的 type 类型，方便操作
+		types,
+
+		//上下文信息
+		store.ToContext,
+
+		// Whether to disallow unknown fields.
+		true,
+	)
 }
 </code></pre>
-<pre><code class="language-go">//vendor/k8s.io/utils/mount/mount_linux.go
-func (mounter *Mounter) doMount(mounterPath string, mountCmd string, source string, target string, fstype string, options []string, sensitiveOptions []string) error {
-	mountArgs, mountArgsLogStr := MakeMountArgsSensitive(source, target, fstype, options, sensitiveOptions)
-	if len(mounterPath) &gt; 0 {
-		mountArgs = append([]string{mountCmd}, mountArgs...)
-		mountArgsLogStr = mountCmd + &quot; &quot; + mountArgsLogStr
-		mountCmd = mounterPath
+<p>意思是， 如果访问<code>/defaulting</code>的时候，转向这个controller处理 .  同时这里有一个types如下(不同的 gvk，转成对应的数据结构)</p>
+<pre><code class="language-go">//cmd/webhook/main.go
+var types = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
+	servingv1.SchemeGroupVersion.WithKind(&quot;Revision&quot;):      &amp;servingv1.Revision{},
+	servingv1.SchemeGroupVersion.WithKind(&quot;Configuration&quot;): &amp;servingv1.Configuration{},
+	servingv1.SchemeGroupVersion.WithKind(&quot;Route&quot;):         &amp;servingv1.Route{},
+	servingv1.SchemeGroupVersion.WithKind(&quot;Service&quot;):       &amp;servingv1.Service{},
+
+	autoscalingv1alpha1.SchemeGroupVersion.WithKind(&quot;PodAutoscaler&quot;): &amp;autoscalingv1alpha1.PodAutoscaler{},
+	autoscalingv1alpha1.SchemeGroupVersion.WithKind(&quot;Metric&quot;):        &amp;autoscalingv1alpha1.Metric{},
+
+	net.SchemeGroupVersion.WithKind(&quot;Certificate&quot;):       &amp;net.Certificate{},
+	net.SchemeGroupVersion.WithKind(&quot;Ingress&quot;):           &amp;net.Ingress{},
+	net.SchemeGroupVersion.WithKind(&quot;ServerlessService&quot;): &amp;net.ServerlessService{},
+}
+</code></pre>
+<p>先留意即可，后续将用到。</p>
+<p>直接来看这个controller的<code>Admit</code>方法:</p>
+<pre><code class="language-go">//knative.dev/pkg/webhook/resourcesemantics/defaulting/defaulting.go
+func (ac *reconciler) Admit(ctx context.Context, request *admissionv1.AdmissionRequest) *admissionv1.AdmissionResponse {
+	.....
+	patchBytes, err := ac.mutate(ctx, request)
+	.....s
+	return &amp;admissionv1.AdmissionResponse{
+		Patch:   patchBytes,
+		Allowed: true,
+		PatchType: func() *admissionv1.PatchType {
+			pt := admissionv1.PatchTypeJSONPatch
+			return &amp;pt
+		}(),
+	}
+}
+</code></pre>
+<p>只做了一件事情 , 如果是创建或者更新请求， 直接执行<code>mutate</code>方法，返回， 继续来看mutate 做了点啥</p>
+<pre><code class="language-go">//knative.dev/pkg/webhook/resourcesemantics/defaulting/defaulting.go
+func (ac *reconciler) mutate(ctx context.Context, req *admissionv1.AdmissionRequest) ([]byte, error) {
+	kind := req.Kind
+	newBytes := req.Object.Raw
+	oldBytes := req.OldObject.Raw
+	gvk := schema.GroupVersionKind{
+		Group:   kind.Group,
+		Version: kind.Version,
+		Kind:    kind.Kind,
 	}
 
-	if mounter.withSystemd {
-		mountCmd, mountArgs, mountArgsLogStr = AddSystemdScopeSensitive(&quot;systemd-run&quot;, target, mountCmd, mountArgs, mountArgsLogStr)
-	} else {
+	logger := logging.FromContext(ctx)
+	//根据请求的内容，构造 gvk，不同的资源，发给不同的handler去处理
+	//把请求的信息转成对应的数据结构，方便操作
+	handler, ok := ac.handlers[gvk]
+	if !ok {
+		logger.Error(&quot;Unhandled kind: &quot;, gvk)
+		return nil, fmt.Errorf(&quot;unhandled kind: %v&quot;, gvk)
 	}
-	command:= exec.Command(mountCmd, mountArgs...)
-	output, err := command.CombinedOutput()
-	if err != nil {
-		klog.Errorf(&quot;Mount failed: %v\nMounting command: %s\nMounting arguments: %s\nOutput: %s\n&quot;, err, mountCmd, mountArgsLogStr, string(output))
-		return fmt.Errorf(&quot;mount failed: %v\nMounting command: %s\nMounting arguments: %s\nOutput: %s&quot;,
-			err, mountCmd, mountArgsLogStr, string(output))
-	}
-	return err
+	......
+	//下文分析
 }
 </code></pre>
+<p>继续刚才的代码</p>
+<pre><code class="language-go">//knative.dev/pkg/webhook/resourcesemantics/defaulting/defaulting.go
+
+//如果自己实现了populatrable接口，搞成 json 转一圈，目的是填上一堆乱七八糟的东西
+//主要还是为了比对处 patch而已, 比如有的对象序列化的时候omitempty就不输出了，比对的时候就有问题了
+if _, ok := newObj.(duck.Populatable); !ok {
+		**rtp, err := roundTripPatch(newBytes, newObj)**
+		if err != nil {
+			return nil, fmt.Errorf(&quot;cannot create patch for round tripped newBytes: %w&quot;, err)
+		}
+		patches = append(patches, rtp...)
+	}
+//这是旧对象， 报文里发来旧对象信息和新对象信息，我们给计算一个结果返回
+if oldObj != nil {
+		//设置默认信息, 比如全局的一些配置啊，比如超时了什么的，每个资源自行处理
+		oldObj = oldObj.DeepCopyObject().(resourcesemantics.GenericCRD)
+		**oldObj.SetDefaults(ctx)**
+	
+		//如果对象有Spec属性，就注入作者啊，修改时间之类的
+		s, ok := oldObj.(apis.HasSpec)
+		if ok {
+			**setUserInfoAnnotations(ctx, s, req.Resource.Group)**
+		}
+		//如果有子对象（比如status）,放到上下文中备用
+		if req.SubResource == &quot;&quot; {
+			ctx = apis.WithinUpdate(ctx, oldObj)
+		} else {
+			ctx = apis.WithinSubResourceUpdate(ctx, oldObj, req.SubResource)
+		}
+	} else {
+		ctx = apis.WithinCreate(ctx)
+	}
+
+	//设置新对象的一堆信息,得到 patch
+	if patches, err = setDefaults(ctx, patches, newObj); err != nil {
+		return nil, err
+	}
+	//还是设置作者，修改时间等乱七八糟的
+	if patches, err = ac.setUserInfoAnnotations(ctx, patches, newObj, req.Resource.Group); err != nil {
+		return nil, err
+	}
+
+	// None of the validators will accept a nil value for newObj.
+	if newObj == nil {
+		return nil, errMissingNewObject
+	}
+</code></pre>
+<p>总结一点就是：</p>
 <ul>
-<li>最终执行的命令是： <code>mount —bind 源 目的</code></li>
+<li>设置了一堆默认的信息，没啥用</li>
 </ul>
-<p>当然了，除了本地 local 插件之外，k8s还内置了需要插件，比如EmptyDir, ConfigMap,Secret，NFS 等等。实现方式大同小异.</p>
-<h1 id="6-总结">6. 总结</h1>
-<p>k8s在卷管理方面大致需要以下几个组件</p>
+<h1 id="3-newvalidationadmissioncontroller">3. newValidationAdmissionController</h1>
+<p>直接上代码</p>
+<pre><code class="language-go">//cmd/webhook/main.go
+return validation.NewAdmissionController(ctx,
+
+		//监听 validation 的资源
+		&quot;validation.webhook.serving.knative.dev&quot;,
+
+		// 本地 http 服务监听的 url 路径
+		&quot;/resource-validation&quot;,
+
+		//把请求转换为资源对象
+		types,
+
+		//上下文 
+		store.ToContext,
+
+		// 是否阻止不认识的字段，就是 openAPI3里没有注册的字段
+		true,
+
+		// 回调接口，不同的对象执行不同的回调，来校验是否准入
+		callbacks,
+	)
+</code></pre>
+<p>根据之前的分析， controller 收到了 http 请求之后，转向了 <code>Admit</code> 方法</p>
+<pre><code class="language-go">//knative.dev/pkg/webhook/resourcessematics/validation/validation_admit.go
+func (ac *reconciler) Admit(ctx context.Context, request *admissionv1.AdmissionRequest) *admissionv1.AdmissionResponse {
+	if ac.withContext != nil {
+		ctx = ac.withContext(ctx)
+	}
+
+	kind := request.Kind
+	gvk := schema.GroupVersionKind{
+		Group:   kind.Group,
+		Version: kind.Version,
+		Kind:    kind.Kind,
+	}
+	//把请求的信息，转成 resource 资源对象, 同时得到 ctx 上下文信息
+	//上下文信息里有一堆配置，比如是否dry-run等
+	ctx, resource, err := ac.decodeRequestAndPrepareContext(ctx, request, gvk)
+	if err != nil {
+		return webhook.MakeErrorStatus(&quot;decoding request failed: %v&quot;, err)
+	}
+	//执行校验方法
+	if err := validate(ctx, resource, request); err != nil {
+		return webhook.MakeErrorStatus(&quot;validation failed: %v&quot;, err)
+	}
+	//执行 callback 方法
+	if err := ac.callback(ctx, request, gvk); err != nil {
+		return webhook.MakeErrorStatus(&quot;validation callback failed: %v&quot;, err)
+	}
+	//其他人没有意见，就返回通过
+	return &amp;admissionv1.AdmissionResponse{Allowed: true}
+}
+</code></pre>
+<p>所以重点在两个方法上. 下面来看两个方法</p>
+<h2 id="validate">validate</h2>
+<pre><code class="language-go">//knative.dev/pkg/webhook/resourcessematics/validation/validation_admit.go
+
+func validate(ctx context.Context, resource resourcesemantics.GenericCRD, req *admissionv1.AdmissionRequest) error {
+	logger := logging.FromContext(ctx)
+
+	//只关注 create 和 update 两种请求
+	switch req.Operation {
+	case admissionv1.Create, admissionv1.Update:
+	case admissionv1.Delete:
+		return nil // Validation handled by optional Callback, but not validatable.
+	default:
+		return nil
+	}
+	if resource == nil {
+		return errMissingNewObject
+	}
+	//这里转发给不同的资源去校验， 比如revision, configuriaon等自己处理
+	if err := resource.Validate(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+</code></pre>
+<p>最终， 不同的资源各自去校验request 的属性是否正确。 也就是说，每个需要校验的资源，都会有实现<code>Validate</code>接口，以后注意观察就是了。</p>
+<h2 id="callback">callback</h2>
+<pre><code class="language-go">//knative.dev/pkg/webhook/resourcessematics/validation/validation_admit.go
+
+func (ac *reconciler) callback(ctx context.Context, req *admissionv1.AdmissionRequest, gvk schema.GroupVersionKind) error {
+	.......
+	//调谐器里初始化的时候注册了callback处理器，不同的资源有不同的 callback
+	//各自执行 callback, 
+	if c, ok := ac.callbacks[gvk]; ok {
+		//不同的资源，对verb可能不敏感，如果支持的话再继续
+		if _, supported := c.supportedVerbs[req.Operation]; supported {
+			unstruct := &amp;unstructured.Unstructured{}
+			newDecoder := json.NewDecoder(bytes.NewBuffer(toDecode))
+			if err := newDecoder.Decode(&amp;unstruct); err != nil {
+				return fmt.Errorf(&quot;cannot decode incoming new object: %w&quot;, err)
+			}
+			//真正去执行校验是否通过
+			return c.function(ctx, unstruct)
+		}
+	}
+	return nil
+}
+
+</code></pre>
+<p>那都有哪些 callback 呢？ 就是 controller注册的时候已经指定了</p>
+<pre><code class="language-go">//cmd/webhook/main.go
+var callbacks = map[schema.GroupVersionKind]validation.Callback{
+	servingv1.SchemeGroupVersion.WithKind(&quot;Service&quot;):       serviceValidation,
+	servingv1.SchemeGroupVersion.WithKind(&quot;Configuration&quot;): configValidation,
+}
+</code></pre>
+<h1 id="4-校验">4. 校验</h1>
+<p>我们比较关注<code>Revision</code>到底有哪些校验 , 因为这里是容器相关的实现部分。 直接看Revision的 Validate是怎么实现的</p>
+<pre><code class="language-go">//pkg/apis/serving/v1/revision_validation.go
+
+func (r *Revision) Validate(ctx context.Context) *apis.FieldError {
+	errs := serving.ValidateObjectMetadata(ctx, r.GetObjectMeta()).Also(
+		r.ValidateLabels().ViaField(&quot;labels&quot;)).ViaField(&quot;metadata&quot;)
+	errs = errs.Also(r.Status.Validate(apis.WithinStatus(ctx)).ViaField(&quot;status&quot;))
+
+	if apis.IsInUpdate(ctx) {
+		original := apis.GetBaseline(ctx).(*Revision)
+		if diff, err := kmp.ShortDiff(original.Spec, r.Spec); err != nil {
+			return &amp;apis.FieldError{
+				Message: &quot;Failed to diff Revision&quot;,
+				Paths:   []string{&quot;spec&quot;},
+				Details: err.Error(),
+			}
+		} else if diff != &quot;&quot; {
+			return &amp;apis.FieldError{
+				Message: &quot;Immutable fields changed (-old +new)&quot;,
+				Paths:   []string{&quot;spec&quot;},
+				Details: diff,
+			}
+		}
+	} else {
+		errs = errs.Also(r.Spec.Validate(apis.WithinSpec(ctx)).ViaField(&quot;spec&quot;))
+	}
+
+	return errs
+}
+</code></pre>
+<p>从上面代码来看，干了以下几件事情</p>
 <ul>
-<li>
-<p>Volume Manager</p>
-<p>是卷管理的驱动入口，负责调谐 pod 和 volume，把pod 的预期卷信息，转化为实际的卷挂载。</p>
+<li>校验ObjectMetadata
+<ul>
+<li><code>Name 是不是dns1035规范的</code></li>
+<li>geneerateName是不是dns1035规范的</li>
+<li>校验annotations
+<ul>
+<li>autoscaling.knative.dev/class ,如果不是 kpa 或者 hpa 报错</li>
+<li>minMaxScale, 比较max/min, 合法校验</li>
+<li>panicWindowPercentage,TargetAnnotationKey, TargetUtilizationPercentageKey,TargetBurstCapacityKey</li>
+<li>window</li>
+<li>scaleToZeroPodRetentionPeriod</li>
+<li>scaleDownDelay</li>
+<li>metric</li>
+<li>initialScale</li>
+</ul>
 </li>
-<li>
-<p>Volume plugins</p>
-<p>一个插件体系，提供了扩展接口，包含了各类存储提供者的plugins实现</p>
-</li>
-<li>
-<p>pv/pvc Controller</p>
-<p>运行在 Master 上的组件，主要做provision/delete, 其他文章再介绍</p>
-</li>
-<li>
-<p>Attach/Detach Controller</p>
-<p>运行在 master 上，主要做一些块设备的Attach和Detach， 比如一些设备GCE 等，必须先Attach到本机节点，之后才能被使用</p>
+<li>校验knativeAnnotations , serving.knative.dev开头的</li>
+<li>校验podSpec
+<ul>
+<li><strong>检查不被允许的字段</strong>
+<ul>
+<li>代码在 <code>pkg/apis/serving/fieldmask.go</code></li>
+<li>不允许的字段有
+<ul>
+<li>InitContainer</li>
+<li>RestartPolicy</li>
+<li>TerminationGracePeriodSeconds</li>
+<li>ActiveDeadlineSeconds</li>
+<li>DNSPolicy</li>
+<li>AutomountServiceAccountToken</li>
+<li>NodeName</li>
+<li>HostNetwork</li>
+<li>HostPID</li>
+<li>HostIPC</li>
+<li>ShareProcessNamespace</li>
+<li>Hostname</li>
+<li>Subdomain</li>
+<li>SchedulerName</li>
+<li>PriorityClassName</li>
+<li>Priority</li>
+<li>DNSConfig</li>
+<li>ReadinessGates</li>
+</ul>
 </li>
 </ul>
-<p>卷挂载的主要流程大概是这样的</p>
-<ol>
-<li>用户创建 Pod，提供一个 PVC 信息</li>
-<li>Pod 被分配到节点 NodeA</li>
-<li>kubelet等待 Volume Manager 挂载完成 (还有其他的一堆等待，比如网络)</li>
-<li>PV Controller 创建持久化卷并在系统中创建 PV 对象，以及绑定 PVC</li>
-<li>Attach/Detach Controller 通过插件实现块设备的挂载
+</li>
+<li>校验 podSecurity</li>
+<li><strong>校验Volumes</strong>
 <ul>
-<li>Volume Manager 将本机 node 节点的目录，挂载到 Pod中。执行的是mount命令。</li>
-<li>kubelet 在启动容器的时候， 通过 CRI 接口，将参数传递给 CRI 的实现者，比如 docker，docker 执行docker -v 把 Pod 的卷信息，再次通过 bind mount 技术，映射到容器中去</li>
+<li>检查不被允许的卷，除了一下这三个，都不被允许
+<ul>
+<li>Secret</li>
+<li>configmap</li>
+<li>projected</li>
 </ul>
 </li>
-</ol>
-<figure data-type="image" tabindex="1"><img src="http://kzltime.cn/post-images/1611475388513.png" alt="" loading="lazy"></figure>
+<li>……其他</li>
+</ul>
+</li>
+<li><strong>校验Containers</strong>
 <ul>
-<li>Pod绑定 Volume 是把本地目录挂载到 Pod 中，并没有给容器</li>
-<li>容器绑定卷，是在启动容器StartContainer的时候，把 Pod 的卷信息 bind 给容器的</li>
+<li>如果一个容器都没有，报错</li>
+<li>如果有多个容器，校验是否开了multi-container的开关，否则报错</li>
+<li>如果有一个容器，校验容器
+<ul>
+<li>只允许启动一个 port，<strong>这是为啥呢？？</strong></li>
+<li>不允许有探针</li>
+<li>其他校验们 prot,resource,security,image,env,等</li>
+<li>校验VolumeMount 信息</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>校验timeoutSeconds</li>
+<li>校验containerConcurrency</li>
+</ul>
+</li>
 </ul>
 
             </div>
@@ -1214,7 +1032,7 @@ func (mounter *Mounter) doMount(mounterPath string, mountCmd string, source stri
     </li>
     <li class="post-copyright-link">
       <strong class="language" data-lan="link">本文链接：</strong>
-      <a href="http://kzltime.cn/post/volume-manager/" title="Kubernetes学习笔记 - Volume Manager">http://kzltime.cn/post/volume-manager/</a>
+      <a href="http://kzltime.cn/post/knative-webhook-1/" title="Knative学习笔记 - WebHook校验">http://kzltime.cn/post/knative-webhook-1/</a>
     </li>
     <li class="post-copyright-license">
       <strong class="language" data-lan="copyright">版权声明： </strong>
@@ -1222,6 +1040,8 @@ func (mounter *Mounter) doMount(mounterPath string, mountCmd string, source stri
     </li>
   </ul>
   <div class="tags">
+    
+      <a href="http://kzltime.cn/tag/2uJO6OO6d/"># knative</a>
     
       <a href="http://kzltime.cn/tag/fttkivhMZ/"># 源码分析</a>
     
@@ -1231,12 +1051,12 @@ func (mounter *Mounter) doMount(mounterPath string, mountCmd string, source stri
   <div class="nav">
     <div class="nav-prev">
       
-        <i class="fa fa-chevron-left"></i>
-        <a class="nav-pc-next" title="kubernetes学习笔记 -  Probe Manager" href="http://kzltime.cn/post/kubernetes-probe-manager/">kubernetes学习笔记 -  Probe Manager</a class="nav-pc-next">
-        <a class="nav-mobile-prev" title="kubernetes学习笔记 -  Probe Manager" href="http://kzltime.cn/post/kubernetes-probe-manager/">上一篇</a>
-      
     </div>
     <div class="nav-next">
+      
+        <a class="nav-pc-next" title="Kubernetes 学习笔记 - kubelet 启动" href="http://kzltime.cn/post/kubernetes-kubelet/">Kubernetes 学习笔记 - kubelet 启动</a>
+        <a class="nav-mobile-next" title="Kubernetes 学习笔记 - kubelet 启动" href="http://kzltime.cn/post/kubernetes-kubelet/">下一篇</a>
+        <i class="fa fa-chevron-right"></i>
       
     </div>
   </div>
